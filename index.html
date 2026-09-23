@@ -1,0 +1,2893 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Digital Oscilloscope Pro - 4 Channels</title>
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cdefs%3E%3ClinearGradient id='b' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%230a0f1d'/%3E%3Cstop offset='1' stop-color='%2305080e'/%3E%3C/linearGradient%3E%3ClinearGradient id='w' x1='0' y1='0' x2='1' y2='0'%3E%3Cstop offset='0' stop-color='%23ffd600'/%3E%3Cstop offset='0.5' stop-color='%2300e5ff'/%3E%3Cstop offset='1' stop-color='%2300e676'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect x='2' y='2' width='60' height='60' rx='14' fill='url(%23b)' stroke='%2322334d' stroke-width='2.5'/%3E%3Cline x1='8' y1='32' x2='56' y2='32' stroke='%231c2b42' stroke-width='1.2' stroke-dasharray='2 3'/%3E%3Cline x1='32' y1='8' x2='32' y2='56' stroke='%231c2b42' stroke-width='1.2' stroke-dasharray='2 3'/%3E%3Cpath d='M8 32 C 16 32, 19 14, 25 14 C 31 14, 33 50, 39 50 C 45 50, 48 32, 56 32' fill='none' stroke='url(%23w)' stroke-width='3.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3Ccircle cx='25' cy='14' r='2.5' fill='%23ffd600'/%3E%3Ccircle cx='39' cy='50' r='2.5' fill='%2300e676'/%3E%3C/svg%3E">
+  <link rel="alternate icon" href="favicon.svg" type="image/svg+xml">
+  <style>
+    :root {
+      --bg-main: #070a10;
+      --bg-panel: #0f1624;
+      --bg-card: #162032;
+      --bg-input: #0b111c;
+      --border-color: #202d42;
+      --border-bright: #354a6c;
+      --text-main: #e2e8f0;
+      --text-muted: #8496b0;
+      --ch1-color: #ffd600;
+      --ch2-color: #00e5ff;
+      --ch3-color: #ff2a85;
+      --ch4-color: #00e676;
+      --math-color: #d500f9;
+      --grid-line: #141e2e;
+      --grid-major: #22334d;
+      --grid-center: #344d73;
+      --cursor-x: #ff9100;
+      --cursor-y: #00e5ff;
+      --danger: #ff4d4d;
+      --success: #00e676;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      user-select: none;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background-color: var(--bg-main);
+      color: var(--text-main);
+      height: 100vh;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* TOP HEADER */
+    header {
+      background: linear-gradient(180deg, #151e2e 0%, #0d1420 100%);
+      border-bottom: 1px solid var(--border-color);
+      padding: 7px 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      flex-shrink: 0;
+      z-index: 10;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .brand-logo {
+      width: 24px;
+      height: 24px;
+      background: linear-gradient(135deg, var(--ch1-color), var(--ch2-color));
+      border-radius: 5px;
+      display: grid;
+      place-items: center;
+      color: #000;
+      font-weight: 900;
+      font-size: 14px;
+    }
+
+    .brand-title {
+      font-size: 14px;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .brand-badge {
+      font-size: 10px;
+      font-weight: 600;
+      padding: 2px 6px;
+      border-radius: 4px;
+      background: #1e293b;
+      color: #38bdf8;
+      border: 1px solid #38bdf844;
+      text-transform: uppercase;
+    }
+
+    .top-controls {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .btn {
+      background: var(--bg-card);
+      color: var(--text-main);
+      border: 1px solid var(--border-color);
+      padding: 5px 11px;
+      border-radius: 5px;
+      font-size: 11.5px;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.15s ease;
+    }
+
+    .btn:hover {
+      background: #1e2c44;
+      border-color: var(--border-bright);
+    }
+
+    .btn:active {
+      transform: translateY(1px);
+    }
+
+    .btn-warning {
+      background: #78350f;
+      border-color: #d97706;
+      color: #fde68a;
+    }
+
+    .btn-warning:hover {
+      background: #b45309;
+      color: #fff;
+    }
+
+    .btn-active {
+      background: #3b82f6 !important;
+      color: #fff !important;
+      border-color: #60a5fa !important;
+      box-shadow: 0 0 10px rgba(59, 130, 246, 0.4);
+    }
+
+    /* MAIN WORKSPACE */
+    .main-workspace {
+      display: flex;
+      flex: 1;
+      min-height: 0;
+      position: relative;
+    }
+
+    /* SCOPE CANVAS CONTAINER */
+    .scope-container {
+      flex: 1;
+      position: relative;
+      background-color: #04070d;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      min-width: 0;
+      min-height: 0;
+    }
+
+    .canvas-wrapper {
+      flex: 1;
+      position: relative;
+      width: 100%;
+      min-height: 0;
+      cursor: crosshair;
+    }
+
+    canvas#scopeCanvas {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+
+    /* OSD - TOP BAR */
+    .osd-topbar {
+      position: absolute;
+      top: 6px;
+      left: 12px;
+      right: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      pointer-events: none;
+      z-index: 5;
+      font-family: "SF Mono", Consolas, monospace;
+      font-size: 11.5px;
+      text-shadow: 0 1px 3px rgba(0,0,0,0.9);
+    }
+
+    .osd-pill {
+      background: rgba(8, 12, 20, 0.85);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      backdrop-filter: blur(4px);
+      padding: 3px 8px;
+      border-radius: 4px;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .osd-channels-status {
+      display: flex;
+      gap: 10px;
+    }
+
+
+
+    /* DRAG & DROP OVERLAY */
+    .drop-overlay {
+      position: absolute;
+      inset: 0;
+      background: rgba(8, 14, 26, 0.92);
+      border: 3px dashed #38bdf8;
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 14px;
+      z-index: 50;
+      backdrop-filter: blur(6px);
+      pointer-events: none;
+    }
+
+    .drop-overlay.active {
+      display: flex;
+    }
+
+    .drop-title {
+      font-size: 20px;
+      font-weight: 700;
+      color: #38bdf8;
+    }
+
+    .drop-desc {
+      font-size: 13px;
+      color: var(--text-muted);
+    }
+
+    /* RIGHT SIDEBAR */
+    .sidebar {
+      width: 320px;
+      background: var(--bg-panel);
+      border-left: 1px solid var(--border-color);
+      display: flex;
+      flex-direction: column;
+      flex-shrink: 0;
+      overflow-y: auto;
+      z-index: 10;
+    }
+
+    .sidebar-section {
+      padding: 10px 12px;
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    .section-title {
+      font-size: 10.5px;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      color: var(--text-muted);
+      font-weight: 700;
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    /* CHANNEL CARDS */
+    .channel-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 6px;
+      margin-bottom: 8px;
+      overflow: hidden;
+      transition: border-color 0.2s;
+    }
+
+    .channel-card.active {
+      border-color: var(--card-color, var(--border-bright));
+    }
+
+    .channel-card:last-child {
+      margin-bottom: 0;
+    }
+
+    .ch-header {
+      padding: 6px 10px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: rgba(0, 0, 0, 0.25);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .ch-id {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      font-weight: 700;
+      font-size: 12.5px;
+    }
+
+    .ch-badge {
+      width: 12px;
+      height: 12px;
+      border-radius: 3px;
+      display: inline-block;
+    }
+
+    .ch-toggle {
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 10.5px;
+      font-weight: 700;
+      padding: 2px 7px;
+      border-radius: 4px;
+      background: #090e17;
+      border: 1px solid var(--border-color);
+      color: var(--text-muted);
+      transition: all 0.15s;
+    }
+
+    .ch-toggle.on {
+      background: rgba(16, 185, 129, 0.2);
+      border-color: #10b981;
+      color: #34d399;
+    }
+
+    .ch-body {
+      padding: 8px 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .ch-file-info {
+      font-size: 10.5px;
+      color: var(--text-muted);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      font-family: monospace;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: rgba(0, 0, 0, 0.3);
+      padding: 3px 6px;
+      border-radius: 4px;
+    }
+
+    .control-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 6px;
+      align-items: center;
+    }
+
+    .control-group {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .control-label {
+      font-size: 9.5px;
+      color: var(--text-muted);
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+    }
+
+    .select, .input {
+      background: var(--bg-input);
+      border: 1px solid var(--border-color);
+      color: var(--text-main);
+      padding: 4px 6px;
+      border-radius: 4px;
+      font-size: 11px;
+      outline: none;
+      width: 100%;
+      font-family: inherit;
+    }
+
+    .select:focus, .input:focus {
+      border-color: #38bdf8;
+    }
+
+    .spin-group {
+      display: flex;
+      align-items: center;
+    }
+
+    .spin-group .input {
+      border-radius: 4px 0 0 4px;
+      text-align: right;
+      padding: 4px 5px;
+      font-size: 10.5px;
+      min-width: 0;
+      flex: 1;
+    }
+
+    .spin-btn {
+      background: #1b2639;
+      border: 1px solid var(--border-color);
+      border-left: none;
+      color: var(--text-main);
+      padding: 4px 5px;
+      font-size: 10.5px;
+      min-width: 19px;
+      text-align: center;
+      cursor: pointer;
+    }
+
+    .spin-btn:last-child {
+      border-radius: 0 4px 4px 0;
+    }
+
+    .spin-btn:hover {
+      background: #253652;
+    }
+
+    /* BOTTOM MEASUREMENTS DRAWER */
+    .measurements-drawer {
+      height: 152px;
+      background: var(--bg-panel);
+      border-top: 1px solid var(--border-color);
+      display: flex;
+      flex-direction: column;
+      flex-shrink: 0;
+      z-index: 10;
+    }
+
+    .drawer-header {
+      padding: 4px 12px;
+      background: rgba(0, 0, 0, 0.3);
+      border-bottom: 1px solid var(--border-color);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 11px;
+      font-weight: 600;
+    }
+
+    .measurements-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr) 230px;
+      gap: 8px;
+      padding: 6px 10px 8px 10px;
+      flex: 1;
+      overflow-x: auto;
+      align-items: stretch;
+    }
+
+    .meas-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 5px;
+      padding: 6px 8px;
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+      min-width: 160px;
+    }
+
+    .meas-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 11px;
+      font-weight: 700;
+      padding-bottom: 3px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .meas-items {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 2px 6px;
+      font-size: 10px;
+      font-family: "SF Mono", Consolas, monospace;
+      margin-top: 2px;
+    }
+
+    .meas-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+    }
+
+    .meas-k {
+      color: var(--text-muted);
+      font-size: 9.5px;
+    }
+
+    .meas-v {
+      font-weight: 600;
+      color: var(--text-main);
+    }
+
+    .cursor-readout-card {
+      background: #0d1420;
+      border: 1px solid rgba(255, 145, 0, 0.4);
+      border-radius: 5px;
+      padding: 6px 8px;
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+    }
+
+    .cursor-readout-title {
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--cursor-x);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .param-pill-group {
+      display: flex;
+      background: var(--bg-input);
+      border-radius: 5px;
+      border: 1px solid var(--border-color);
+      padding: 2px;
+      gap: 2px;
+    }
+
+    .param-pill {
+      flex: 1;
+      text-align: center;
+      padding: 4px 6px;
+      font-size: 11px;
+      font-weight: 600;
+      border-radius: 3px;
+      cursor: pointer;
+      color: var(--text-muted);
+      transition: all 0.15s;
+      white-space: nowrap;
+    }
+
+    .param-pill:hover {
+      color: var(--text-main);
+    }
+
+    .param-pill.active {
+      background: #2563eb;
+      color: #fff;
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    /* NOTE MODAL & CALLOUTS */
+    .note-modal-overlay {
+      position: absolute;
+      inset: 0;
+      background: rgba(4, 7, 13, 0.65);
+      backdrop-filter: blur(4px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 100;
+    }
+
+    .note-modal-card {
+      background: #0f172a;
+      border: 1px solid #334155;
+      border-radius: 8px;
+      width: 350px;
+      box-shadow: 0 12px 28px rgba(0, 0, 0, 0.7);
+      overflow: hidden;
+      animation: modalFadeIn 0.15s ease-out;
+    }
+
+    @keyframes modalFadeIn {
+      from { opacity: 0; transform: scale(0.95); }
+      to { opacity: 1; transform: scale(1); }
+    }
+
+    .note-modal-header {
+      padding: 10px 14px;
+      background: #1e293b;
+      border-bottom: 1px solid #334155;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 12px;
+      font-weight: 700;
+      color: #f1f5f9;
+    }
+
+    .modal-close-btn {
+      background: none;
+      border: none;
+      color: #94a3b8;
+      font-size: 18px;
+      cursor: pointer;
+      line-height: 1;
+    }
+
+    .modal-close-btn:hover {
+      color: #fff;
+    }
+
+    .note-modal-body {
+      padding: 12px 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .note-textarea {
+      width: 100%;
+      background: #020617;
+      border: 1px solid #334155;
+      border-radius: 6px;
+      padding: 8px 10px;
+      color: #f8fafc;
+      font-family: inherit;
+      font-size: 12px;
+      resize: vertical;
+      min-height: 65px;
+    }
+
+    .note-textarea:focus {
+      outline: none;
+      border-color: #38bdf8;
+      box-shadow: 0 0 0 2px rgba(56, 189, 248, 0.2);
+    }
+
+    .note-color-picker {
+      display: flex;
+      gap: 6px;
+      align-items: center;
+    }
+
+    .color-pill {
+      width: 20px;
+      height: 20px;
+      border-radius: 4px;
+      cursor: pointer;
+      border: 2px solid transparent;
+      transition: transform 0.1s;
+    }
+
+    .color-pill:hover {
+      transform: scale(1.15);
+    }
+
+    .color-pill.active {
+      border-color: #fff;
+      box-shadow: 0 0 6px rgba(255, 255, 255, 0.6);
+    }
+
+    .note-modal-footer {
+      padding: 10px 14px;
+      background: #090e17;
+      border-top: 1px solid #1e293b;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .btn-danger {
+      background: #7f1d1d !important;
+      border-color: #ef4444 !important;
+      color: #fecaca !important;
+    }
+
+    .btn-danger:hover {
+      background: #991b1b !important;
+      color: #fff !important;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- TOP HEADER -->
+  <header>
+    <div class="brand">
+      <div class="brand-logo">~</div>
+      <div class="brand-title">
+        Digital Oscilloscope Pro
+        <span class="brand-badge">4-CH &bull; High Resolution</span>
+      </div>
+    </div>
+
+    <div class="top-controls">
+      <button class="btn btn-warning" id="btnLoadRealRamp" title="Load reference acquisition: CH1 ramp (1.78V) and CH2 curve (3.38V)">
+        <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+        Demo Waveform (1.8V / 3.4V)
+      </button>
+
+      <button class="btn" id="btnAutoset" title="Automatically scale and center active channels">
+        <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
+        Autoset
+      </button>
+
+      <div class="param-pill-group">
+        <div class="param-pill active" id="cursorModeOff" onclick="setCursorMode('off')">No Cursors</div>
+        <div class="param-pill" id="cursorModeX" onclick="setCursorMode('X')">X Cursors (Time)</div>
+        <div class="param-pill" id="cursorModeY" onclick="setCursorMode('Y')">Y Cursors (Voltage)</div>
+        <div class="param-pill" id="cursorModeXY" onclick="setCursorMode('XY')">Both (X &amp; Y)</div>
+      </div>
+      <select id="selCursorYTarget" class="select hidden" style="width:auto; padding:3px 8px; font-size:11px; background:#1b283d; border-color:#38bdf8;" onchange="onCursorTargetChannelChange(this.value)">
+        <option value="1">Measure CH1 (Yellow)</option>
+        <option value="2">Measure CH2 (Cyan)</option>
+        <option value="3">Measure CH3 (Magenta)</option>
+        <option value="4">Measure CH4 (Green)</option>
+      </select>
+
+      <button class="btn" id="btnAddNote" onclick="toggleAddNoteMode()" title="Click on the oscillogram to add a note or annotation">
+        <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
+        Add Note
+      </button>
+
+      <button class="btn" id="btnExportImage" title="Save PNG screenshot of the display">
+        <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+        PNG Screenshot
+      </button>
+
+      <button class="btn" id="btnExportMeas" title="Export measurements report to CSV">
+        <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+        Export Measurements
+      </button>
+    </div>
+  </header>
+
+  <!-- MAIN WORKSPACE -->
+  <div class="main-workspace">
+    <div class="scope-container" id="scopeContainer">
+      <!-- NOTE CREATION / EDIT MODAL -->
+      <div id="noteModal" class="note-modal-overlay hidden" onclick="onNoteModalOverlayClick(event)">
+        <div class="note-modal-card" onclick="event.stopPropagation()">
+          <div class="note-modal-header">
+            <div style="display:flex; align-items:center; gap:6px;">
+              <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
+              <span id="noteModalTitle">Add Oscilloscope Note</span>
+            </div>
+            <button class="modal-close-btn" onclick="closeNoteModal()">&times;</button>
+          </div>
+          <div class="note-modal-body">
+            <div id="notePositionInfo" style="font-size:11px; color:#94a3b8; font-family:monospace;">
+              Position: t = 0.00 ms, V = 0.00 V
+            </div>
+            <textarea id="noteTextInput" class="note-textarea" rows="3" placeholder="Enter measurement note, glitch warning, or observation..."></textarea>
+            
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-top:4px;">
+              <label style="font-size:11px; color:#94a3b8; font-weight:600;">Note Color:</label>
+              <div class="note-color-picker" id="noteColorPicker">
+                <div class="color-pill active" style="background:#fbbf24;" onclick="selectNoteColor('#fbbf24', this)" title="Amber"></div>
+                <div class="color-pill" style="background:#ffd600;" onclick="selectNoteColor('#ffd600', this)" title="CH1 Yellow"></div>
+                <div class="color-pill" style="background:#00e5ff;" onclick="selectNoteColor('#00e5ff', this)" title="CH2 Cyan"></div>
+                <div class="color-pill" style="background:#ff2a85;" onclick="selectNoteColor('#ff2a85', this)" title="CH3 Magenta"></div>
+                <div class="color-pill" style="background:#00e676;" onclick="selectNoteColor('#00e676', this)" title="CH4 Green"></div>
+                <div class="color-pill" style="background:#ffffff;" onclick="selectNoteColor('#ffffff', this)" title="White"></div>
+              </div>
+            </div>
+          </div>
+          <div class="note-modal-footer">
+            <button class="btn btn-danger hidden" id="btnDeleteNote" onclick="deleteActiveNote()">Delete Note</button>
+            <div style="display:flex; gap:6px; margin-left:auto;">
+              <button class="btn" onclick="closeNoteModal()">Cancel</button>
+              <button class="btn btn-active" onclick="saveNoteFromModal()">Save Note</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="canvas-wrapper" id="canvasWrapper">
+        <canvas id="scopeCanvas"></canvas>
+
+        <!-- OSD TOP BAR -->
+        <div class="osd-topbar">
+          <div class="osd-pill">
+            <span id="osdTB" style="color:#38bdf8;">TB: 500 µs</span>
+            <span>T: 0 s</span>
+            <span style="color:#ffd600;" id="osdTrigger">CH1: 980mV /DC</span>
+            <span style="color:#94a3b8;">10 MSa</span>
+          </div>
+          <div class="osd-channels-status" id="osdChannelsHeader">
+            <span class="osd-pill" style="color:var(--ch1-color);">CH1: 1 V/div</span>
+            <span class="osd-pill" style="color:var(--ch2-color);">CH2: 1 V/div</span>
+          </div>
+        </div>
+
+
+
+        <!-- DRAG & DROP OVERLAY -->
+        <div class="drop-overlay" id="dropOverlay">
+          <div class="drop-title">Drop your CSV files here</div>
+          <div class="drop-desc">Drag and drop ch1.csv, ch2.csv or any multi-channel oscillogram</div>
+        </div>
+      </div>
+
+      <!-- BOTTOM MEASUREMENTS DRAWER (Positioned directly under the oscillogram) -->
+      <div class="measurements-drawer">
+        <div class="drawer-header">
+          <div style="display:flex; align-items:center; gap:8px;">
+            <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
+            <span>Automated Laboratory Measurements</span>
+          </div>
+          <div style="font-size:10.5px; color:var(--text-muted)">
+            Calculated over active window with probe factor applied
+          </div>
+        </div>
+
+        <div class="measurements-grid" id="measGrid"></div>
+      </div>
+    </div>
+
+    <!-- RIGHT SIDEBAR -->
+    <aside class="sidebar">
+      
+      <!-- HORIZONTAL TIMEBASE -->
+      <div class="sidebar-section">
+        <div class="section-title">
+          <span>Horizontal Timebase</span>
+          <span style="color:#38bdf8; font-family:monospace;" id="lblTimeScale">500 µs/div</span>
+        </div>
+        <div class="control-row">
+          <div class="control-group">
+            <label class="control-label">Scale (Time/div)</label>
+            <select class="select" id="selTimeScale" onchange="onTimeScaleChange(this.value)">
+              <option value="1e-7">100 ns/div</option>
+              <option value="2e-7">200 ns/div</option>
+              <option value="5e-7">500 ns/div</option>
+              <option value="1e-6">1 µs/div</option>
+              <option value="2e-6">2 µs/div</option>
+              <option value="5e-6">5 µs/div</option>
+              <option value="1e-5">10 µs/div</option>
+              <option value="2e-5">20 µs/div</option>
+              <option value="5e-5">50 µs/div</option>
+              <option value="1e-4">100 µs/div</option>
+              <option value="2e-4">200 µs/div</option>
+              <option value="5e-4" selected>500 µs/div</option>
+              <option value="1e-3">1.0 ms/div</option>
+              <option value="2e-3">2.0 ms/div</option>
+              <option value="5e-3">5.0 ms/div</option>
+            </select>
+          </div>
+          <div class="control-group">
+            <label class="control-label">Position (Offset)</label>
+            <div class="spin-group">
+              <input type="text" class="input" id="numTimeOffset" value="0.00 ms" readonly>
+              <button class="spin-btn" onclick="adjustTimeOffset(-1)" title="Move left">&lt;</button>
+              <button class="spin-btn" onclick="resetTimeOffset()" title="Center t=0">0</button>
+              <button class="spin-btn" onclick="adjustTimeOffset(1)" title="Move right">&gt;</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ANALOG CHANNELS -->
+      <div class="sidebar-section">
+        <div class="section-title">
+          <span>Analog Channels (1 to 4)</span>
+          <span style="font-size:10px; color:#38bdf8">Offset 0.0 V Default</span>
+        </div>
+
+        <div id="channelsContainer"></div>
+
+        <!-- MATH CHANNEL -->
+        <div class="channel-card" style="--card-color: var(--math-color); margin-top: 8px;">
+          <div class="ch-header">
+            <div class="ch-id" style="color: var(--math-color);">
+              <span class="ch-badge" style="background: var(--math-color);"></span>
+              <span>MATH (CH1 - CH2)</span>
+            </div>
+            <div class="ch-toggle" id="mathToggle" onclick="toggleMathChannel()">OFF</div>
+          </div>
+          <div class="ch-body">
+            <div class="control-row">
+              <div class="control-group">
+                <label class="control-label">Operation</label>
+                <select class="select" id="selMathOp" onchange="onMathOpChange(this.value)">
+                  <option value="sub">CH1 - CH2 (Differential)</option>
+                  <option value="add">CH1 + CH2 (Sum)</option>
+                  <option value="inv1">-CH1 (Invert CH1)</option>
+                </select>
+              </div>
+              <div class="control-group">
+                <label class="control-label">Scale V/div</label>
+                <select class="select" id="selMathScale" onchange="onMathScaleChange(this.value)">
+                  <option value="0.5">500 mV/div</option>
+                  <option value="1.0" selected>1.0 V/div</option>
+                  <option value="2.0">2.0 V/div</option>
+                </select>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- DISPLAY & RETICLE -->
+      <div class="sidebar-section">
+        <div class="section-title">Display &amp; Reticle</div>
+        <div class="control-row">
+          <div class="control-group">
+            <label class="control-label">Reticle</label>
+            <select class="select" id="selGridStyle" onchange="redraw()">
+              <option value="wide" selected>Wide Reticle (12x8 divs)</option>
+              <option value="standard">Standard (10x8 divs)</option>
+            </select>
+          </div>
+          <div class="control-group">
+            <label class="control-label">Trace Mode</label>
+            <select class="select" id="selDrawMode" onchange="redraw()">
+              <option value="vector" selected>Vector Line (Clean)</option>
+              <option value="dots">Sample Points</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+    </aside>
+  </div>
+
+  <!-- EMBEDDED JAVASCRIPT ENGINE -->
+  <script>
+    /* ==========================================================================
+       GLOBAL STATE (DEFAULT OFFSET 0.0V AS REQUESTED)
+       ========================================================================== */
+    const state = {
+      channels: [
+        {
+          id: 1, name: "CH1", alias: "", color: "#ffd600", enabled: true,
+          probe: 1.0,
+          vScale: 1.0, // 1 V/div
+          vOffset: 0.0, // Predefined 0.0V offset
+          tOffset: 0.0, // Individual channel X offset (time delay)
+          invert: false,
+          data: null,
+          fileName: "No data",
+          metrics: null
+        },
+        {
+          id: 2, name: "CH2", alias: "", color: "#00e5ff", enabled: true,
+          probe: 1.0,
+          vScale: 1.0, // 1 V/div
+          vOffset: 0.0, // Predefined 0.0V offset
+          tOffset: 0.0, // Individual channel X offset (time delay)
+          invert: false,
+          data: null,
+          fileName: "No data",
+          metrics: null
+        },
+        {
+          id: 3, name: "CH3", alias: "", color: "#ff2a85", enabled: false,
+          probe: 1.0,
+          vScale: 1.0,
+          vOffset: 0.0,
+          tOffset: 0.0,
+          invert: false,
+          data: null,
+          fileName: "No data",
+          metrics: null
+        },
+        {
+          id: 4, name: "CH4", alias: "", color: "#00e676", enabled: false,
+          probe: 1.0,
+          vScale: 1.0,
+          vOffset: 0.0,
+          tOffset: 0.0,
+          invert: false,
+          data: null,
+          fileName: "No data",
+          metrics: null
+        }
+      ],
+      math: {
+        enabled: false,
+        op: "sub",
+        vScale: 1.0,
+        vOffset: 0.0,
+        color: "#d500f9"
+      },
+      timebase: {
+        scale: 0.0005, // 500 µs/div
+        offset: 0.0,   // Center t=0 s
+        divisions: 12, // 12 divisions standard
+        sampleRate: 10000000 // 10 MSa/s
+      },
+      vDivisions: 8,
+      cursors: {
+        mode: "off",
+        x1: -0.0015,
+        x2: 0.0015,
+        y1: 1.78,
+        y2: -0.02,
+        targetChannel: 1,
+        dragging: null
+      },
+      interaction: {
+        isPanning: false,
+        panStartX: 0,
+        panStartY: 0,
+        panStartOffset: 0,
+        hasPanned: false,
+        draggingNote: null
+      },
+      notes: [],
+      noteMode: false,
+      activeNoteEditId: null,
+      pendingNotePos: null,
+      selectedNoteColor: "#fbbf24"
+    };
+
+    const canvas = document.getElementById("scopeCanvas");
+    const ctx = canvas.getContext("2d");
+    const canvasWrapper = document.getElementById("canvasWrapper");
+
+    /* ==========================================================================
+       INITIALIZATION
+       ========================================================================== */
+    window.addEventListener("DOMContentLoaded", () => {
+      buildChannelCardsUI();
+      buildMeasGridUI();
+      setupEventListeners();
+      resizeCanvas();
+      window.addEventListener("resize", resizeCanvas);
+
+      loadExistingCsvFiles();
+    });
+
+    function buildChannelCardsUI() {
+      const container = document.getElementById("channelsContainer");
+      container.innerHTML = "";
+
+      state.channels.forEach(ch => {
+        const card = document.createElement("div");
+        card.className = `channel-card ${ch.enabled ? "active" : ""}`;
+        card.id = `card-ch-${ch.id}`;
+        card.style.setProperty("--card-color", ch.color);
+
+        card.innerHTML = `
+          <div class="ch-header">
+            <div class="ch-id" style="color: ${ch.color}">
+              <span class="ch-badge" style="background: ${ch.color}"></span>
+              <span id="ch-title-${ch.id}" style="cursor:pointer;" onclick="promptChannelAlias(${ch.id})" title="Click to edit alias">${ch.alias ? `${ch.name} [${ch.alias}]` : ch.name}</span>
+            </div>
+            <div style="display:flex; align-items:center; gap:5px;">
+              <input type="file" id="fileInput-ch${ch.id}" accept=".csv,.txt" style="display:none" onchange="handleSingleChannelFile(${ch.id}, this)">
+              <button class="btn" style="padding:2px 6px; font-size:10px" onclick="document.getElementById('fileInput-ch${ch.id}').click()" title="Load CSV for ${ch.name}">
+                CSV
+              </button>
+              <div class="ch-toggle ${ch.enabled ? "on" : ""}" id="toggle-ch-${ch.id}" onclick="toggleChannel(${ch.id})">
+                ${ch.enabled ? "ON" : "OFF"}
+              </div>
+            </div>
+          </div>
+          <div class="ch-body">
+            <div class="ch-file-info">
+              <span id="filename-ch-${ch.id}" style="max-width:170px; overflow:hidden; text-overflow:ellipsis;">${ch.fileName}</span>
+              <span id="samples-ch-${ch.id}" style="color:${ch.color}">0 Sa</span>
+            </div>
+
+            <div class="control-row" style="margin-top:2px;">
+              <div class="control-group" style="flex:1;">
+                <label class="control-label" style="display:flex; justify-content:space-between;">
+                  <span>Channel Alias</span>
+                  <span style="font-size:9.5px; color:#38bdf8; cursor:pointer;" onclick="promptChannelAlias(${ch.id})">Edit</span>
+                </label>
+                <input type="text" class="input" id="alias-ch-${ch.id}" value="${ch.alias || ''}" placeholder="e.g. VCAP, GATE, PWM..." oninput="setChannelAlias(${ch.id}, this.value)" style="font-size:11px; padding:3px 6px;">
+              </div>
+            </div>
+
+            <div class="control-row">
+              <div class="control-group">
+                <label class="control-label">Probe</label>
+                <select class="select" id="probe-ch-${ch.id}" onchange="onProbeChange(${ch.id}, this.value)">
+                  <option value="1" ${ch.probe === 1 ? "selected" : ""}>1X (Direct)</option>
+                  <option value="10" ${ch.probe === 10 ? "selected" : ""}>10X (Attenuated)</option>
+                  <option value="100" ${ch.probe === 100 ? "selected" : ""}>100X</option>
+                  <option value="custom">Custom...</option>
+                </select>
+              </div>
+
+              <div class="control-group">
+                <label class="control-label">Scale V/div</label>
+                <select class="select" id="vscale-ch-${ch.id}" onchange="onVScaleChange(${ch.id}, this.value)">
+                  <option value="0.05">50 mV/div</option>
+                  <option value="0.1">100 mV/div</option>
+                  <option value="0.2">200 mV/div</option>
+                  <option value="0.5">500 mV/div</option>
+                  <option value="1.0" selected>1.0 V/div</option>
+                  <option value="2.0">2.0 V/div</option>
+                  <option value="5.0">5.0 V/div</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="control-row">
+              <div class="control-group">
+                <label class="control-label">Offset Y (V)</label>
+                <div class="spin-group">
+                  <input type="text" class="input" id="voffset-ch-${ch.id}" value="${ch.vOffset.toFixed(2)} V" onclick="promptVOffset(${ch.id})" title="Click to enter specific voltage" readonly style="cursor:pointer;">
+                  <button class="spin-btn" onclick="adjustVOffset(${ch.id}, -0.5)" title="Down">-</button>
+                  <button class="spin-btn" onclick="resetVOffset(${ch.id})" title="Reset 0V">0</button>
+                  <button class="spin-btn" onclick="adjustVOffset(${ch.id}, 0.5)" title="Up">+</button>
+                </div>
+              </div>
+
+              <div class="control-group">
+                <label class="control-label">Offset X (Time)</label>
+                <div class="spin-group">
+                  <input type="text" class="input" id="toffset-ch-${ch.id}" value="${formatTime(ch.tOffset || 0)}" onclick="promptTOffset(${ch.id})" title="Click to enter specific time offset" readonly style="cursor:pointer;">
+                  <button class="spin-btn" onclick="adjustTOffset(${ch.id}, -1)" title="Shift left (-0.2 div)">&lt;</button>
+                  <button class="spin-btn" onclick="resetTOffset(${ch.id})" title="Reset 0s">0</button>
+                  <button class="spin-btn" onclick="adjustTOffset(${ch.id}, 1)" title="Shift right (+0.2 div)">&gt;</button>
+                </div>
+              </div>
+            </div>
+
+            <div class="control-row" style="margin-top:2px;">
+              <button class="btn" id="btn-inv-ch-${ch.id}" onclick="toggleInvert(${ch.id})" style="width:100%; justify-content:center;">
+                Invert Polarity (&plusmn;)
+              </button>
+            </div>
+          </div>
+        `;
+        container.appendChild(card);
+      });
+    }
+
+    function buildMeasGridUI() {
+      const grid = document.getElementById("measGrid");
+      grid.innerHTML = "";
+
+      state.channels.forEach(ch => {
+        const card = document.createElement("div");
+        card.className = "meas-card";
+        card.id = `meas-card-ch-${ch.id}`;
+        card.style.borderTop = `3px solid ${ch.color}`;
+
+        card.innerHTML = `
+          <div class="meas-header">
+            <span style="color:${ch.color}" id="meas-ch-title-${ch.id}">${ch.alias ? `${ch.name} (${ch.alias})` : ch.name}</span>
+            <span style="font-size:9.5px; color:var(--text-muted);" id="meas-probe-ch-${ch.id}">${ch.probe}X</span>
+          </div>
+          <div class="meas-items">
+            <div class="meas-row"><span class="meas-k">Vp+:</span><span class="meas-v" id="m-vmax-${ch.id}">--</span></div>
+            <div class="meas-row"><span class="meas-k">Vp-:</span><span class="meas-v" id="m-vmin-${ch.id}">--</span></div>
+            <div class="meas-row"><span class="meas-k">Vpp:</span><span class="meas-v" id="m-vpp-${ch.id}">--</span></div>
+            <div class="meas-row"><span class="meas-k">Vmean:</span><span class="meas-v" id="m-vmean-${ch.id}">--</span></div>
+            <div class="meas-row"><span class="meas-k">Vrms:</span><span class="meas-v" id="m-vrms-${ch.id}">--</span></div>
+            <div class="meas-row"><span class="meas-k">Freq:</span><span class="meas-v" id="m-freq-${ch.id}">--</span></div>
+          </div>
+        `;
+        grid.appendChild(card);
+      });
+
+      const cursorCard = document.createElement("div");
+      cursorCard.className = "cursor-readout-card";
+      cursorCard.innerHTML = `
+        <div class="cursor-readout-title">
+          <span>CURSORS</span>
+          <span style="font-size:9.5px; color:#ff9100;" id="cursorActiveModeLabel">OFF</span>
+        </div>
+        <div class="meas-items" id="cursorReadoutItems">
+          <div class="meas-row"><span class="meas-k">&Delta;t:</span><span class="meas-v" id="c-dx">--</span></div>
+          <div class="meas-row"><span class="meas-k">1/&Delta;t:</span><span class="meas-v" id="c-inv-dx">--</span></div>
+          <div class="meas-row"><span class="meas-k">&Delta;V:</span><span class="meas-v" id="c-dy">--</span></div>
+          <div class="meas-row"><span class="meas-k">V1 / V2:</span><span class="meas-v" id="c-y1y2">--</span></div>
+        </div>
+      `;
+      grid.appendChild(cursorCard);
+    }
+
+    /* ==========================================================================
+       LOAD CSV FILES
+       ========================================================================== */
+    async function loadExistingCsvFiles() {
+      try {
+        const resp1 = await fetch("ch1.csv");
+        if (resp1.ok) {
+          const t1 = await resp1.text();
+          const p1 = parseCSVText(t1);
+          if (p1) {
+            state.channels[0].data = { time: p1.time, voltage: p1.channels[0] };
+            state.channels[0].fileName = "ch1.csv";
+            state.channels[0].enabled = true;
+            updateChannelUI(1);
+            calculateChannelMetrics(state.channels[0]);
+          }
+        }
+
+        const resp2 = await fetch("ch2.csv");
+        if (resp2.ok) {
+          const t2 = await resp2.text();
+          const p2 = parseCSVText(t2);
+          if (p2) {
+            state.channels[1].data = { time: p2.time, voltage: p2.channels[0] };
+            state.channels[1].fileName = "ch2.csv";
+            state.channels[1].enabled = true;
+            updateChannelUI(2);
+            calculateChannelMetrics(state.channels[1]);
+          }
+        }
+
+        redraw();
+      } catch (e) {
+        // Fallback for file:/// protocol
+      }
+    }
+
+    function parseCSVText(csvText) {
+      const lines = csvText.split(/\r?\n/);
+      if (lines.length < 2) return null;
+
+      let separator = ",";
+      const sample = lines.slice(0, 10).join("\n");
+      if (sample.includes(";")) separator = ";";
+      else if (sample.includes("\t")) separator = "\t";
+
+      let headerRowIndex = 0;
+      let headers = [];
+      for (let i = 0; i < Math.min(25, lines.length); i++) {
+        const line = lines[i].trim();
+        if (!line) continue;
+        const parts = line.split(separator);
+        if (/[a-zA-Z]/.test(parts[0]) || (parts[1] && /[a-zA-Z]/.test(parts[1]))) {
+          headerRowIndex = i;
+          headers = parts.map(p => p.trim());
+          break;
+        }
+      }
+
+      const rawTimes = [];
+      const rawChannels = [[], [], [], []];
+
+      for (let i = headerRowIndex + 1; i < lines.length; i++) {
+        const line = lines[i].trim();
+        if (!line) continue;
+        const parts = line.split(separator);
+        if (parts.length < 2) continue;
+
+        const tStr = separator === ";" ? parts[0].replace(",", ".") : parts[0];
+        const tVal = Number(tStr);
+        if (isNaN(tVal)) continue;
+
+        rawTimes.push(tVal);
+
+        for (let chIdx = 0; chIdx < Math.min(4, parts.length - 1); chIdx++) {
+          const vStr = separator === ";" ? parts[chIdx + 1].replace(",", ".") : parts[chIdx + 1];
+          const vVal = Number(vStr);
+          rawChannels[chIdx].push(isNaN(vVal) ? 0 : vVal);
+        }
+      }
+
+      const count = rawTimes.length;
+      if (count === 0) return null;
+
+      return {
+        headers,
+        time: new Float64Array(rawTimes),
+        channels: [
+          new Float32Array(rawChannels[0]),
+          rawChannels[1].length === count ? new Float32Array(rawChannels[1]) : null,
+          rawChannels[2].length === count ? new Float32Array(rawChannels[2]) : null,
+          rawChannels[3].length === count ? new Float32Array(rawChannels[3]) : null
+        ],
+        count
+      };
+    }
+
+    function loadCSVFile(file, forcedChId = null) {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const text = e.target.result;
+        const parsed = parseCSVText(text);
+        if (!parsed) {
+          alert(`Failed to extract valid data from: ${file.name}`);
+          return;
+        }
+
+        let targetId = forcedChId || 1;
+        const lowerName = file.name.toLowerCase();
+        if (!forcedChId) {
+          if (lowerName.includes("ch2") || lowerName.includes("canal2")) targetId = 2;
+          else if (lowerName.includes("ch3")) targetId = 3;
+          else if (lowerName.includes("ch4")) targetId = 4;
+          else targetId = 1;
+        }
+
+        if (!forcedChId && parsed.channels[1]) {
+          // Multi-channel CSV with multiple columns: load all active channels
+          for (let i = 0; i < 4; i++) {
+            if (parsed.channels[i] && parsed.channels[i].length > 0) {
+              const ch = state.channels[i];
+              ch.data = { time: parsed.time, voltage: parsed.channels[i] };
+              ch.fileName = `${file.name} (CH${i + 1})`;
+              ch.enabled = true;
+              updateChannelUI(i + 1);
+              calculateChannelMetrics(ch);
+            }
+          }
+        } else {
+          const ch = state.channels[targetId - 1];
+          ch.data = { time: parsed.time, voltage: parsed.channels[0] };
+          ch.fileName = file.name;
+          ch.enabled = true;
+          updateChannelUI(targetId);
+          calculateChannelMetrics(ch);
+        }
+        redraw();
+      };
+      reader.readAsText(file);
+    }
+
+    function handleSingleChannelFile(chId, inputElement) {
+      if (inputElement.files && inputElement.files[0]) {
+        loadCSVFile(inputElement.files[0], chId);
+        inputElement.value = "";
+      }
+    }
+
+    /* ==========================================================================
+       DEMO REFERENCE RAMP (1.78V / 3.38V ACQUISITION)
+       ========================================================================== */
+    function loadDemoWaveformSignal() {
+      const count = 60000;
+      const times = new Float64Array(count);
+      const ch1Volts = new Float32Array(count);
+      const ch2Volts = new Float32Array(count);
+      const ch3Volts = new Float32Array(count);
+      const ch4Volts = new Float32Array(count);
+
+      const tStart = -0.003;
+      const dt = 0.0000001; // 100 ns
+
+      for (let i = 0; i < count; i++) {
+        const t = tStart + i * dt;
+        times[i] = t;
+
+        const noise = (Math.random() - 0.5) * 0.03 - 0.02;
+
+        // CH2 (Cyan): Smooth S-curve to 3.38 V
+        let v2 = 0;
+        if (t < -0.0018) {
+          v2 = 0.0;
+        } else if (t < 0.0) {
+          const progress = (t - (-0.0018)) / 0.0018;
+          v2 = 3.38 * (0.5 - 0.5 * Math.cos(Math.PI * Math.min(1.0, progress)));
+        } else {
+          v2 = 3.38;
+        }
+        ch2Volts[i] = v2 + noise;
+
+        // CH1 (Yellow, VCAP): Linear ramp from 0V to 1.78V
+        let v1 = 0;
+        if (t < -0.00055) {
+          v1 = 0.0;
+        } else if (t < 0.0) {
+          const progress = (t - (-0.00055)) / 0.00055;
+          v1 = 1.78 * progress;
+        } else {
+          v1 = 1.78;
+        }
+        ch1Volts[i] = v1 + noise;
+
+        // CH3 (Magenta): 1 kHz Clock / Square wave (0V to 3.3V)
+        const period3 = 0.001;
+        const phase3 = Math.abs((t - tStart) % period3);
+        const v3 = (phase3 < period3 * 0.5) ? 3.3 : 0.0;
+        ch3Volts[i] = v3 + (Math.random() - 0.5) * 0.02;
+
+        // CH4 (Green): 2.5 kHz Gate Pulse (0V to 5.0V)
+        const period4 = 0.0004;
+        const phase4 = Math.abs((t - tStart) % period4);
+        const v4 = (phase4 < period4 * 0.3) ? 5.0 : 0.0;
+        ch4Volts[i] = v4 + (Math.random() - 0.5) * 0.02;
+      }
+
+      state.channels[0].data = { time: times, voltage: ch1Volts };
+      state.channels[0].fileName = "CH1_VCAP (1.78V)";
+      state.channels[0].alias = "VCAP";
+      state.channels[0].probe = 1.0;
+      state.channels[0].vScale = 1.0;
+      state.channels[0].vOffset = 0.0;
+      state.channels[0].tOffset = 0.0;
+      state.channels[0].enabled = true;
+
+      state.channels[1].data = { time: times, voltage: ch2Volts };
+      state.channels[1].fileName = "CH2 (3.38V)";
+      state.channels[1].alias = "SUPPLY";
+      state.channels[1].probe = 1.0;
+      state.channels[1].vScale = 1.0;
+      state.channels[1].vOffset = 0.0;
+      state.channels[1].tOffset = 0.0;
+      state.channels[1].enabled = true;
+
+      state.channels[2].data = { time: times, voltage: ch3Volts };
+      state.channels[2].fileName = "CH3_CLK (3.3V 1kHz)";
+      state.channels[2].alias = "CLOCK";
+      state.channels[2].probe = 1.0;
+      state.channels[2].vScale = 1.0;
+      state.channels[2].vOffset = 0.0;
+      state.channels[2].tOffset = 0.0;
+      state.channels[2].enabled = true;
+
+      state.channels[3].data = { time: times, voltage: ch4Volts };
+      state.channels[3].fileName = "CH4_PWM (5.0V 2.5kHz)";
+      state.channels[3].alias = "GATE";
+      state.channels[3].probe = 1.0;
+      state.channels[3].vScale = 2.0;
+      state.channels[3].vOffset = 0.0;
+      state.channels[3].tOffset = 0.0;
+      state.channels[3].enabled = true;
+
+      state.timebase.scale = 0.0005; // 500 µs/div
+      state.timebase.offset = 0.0;
+
+      // Seed 2 demo notes
+      state.notes = [
+        {
+          id: "note_demo_1",
+          time: -0.0003,
+          voltage: 1.78,
+          targetChannel: 1,
+          text: "VCAP Ramp Max: 1.78V",
+          color: "#ffd600",
+          relX: 25,
+          relY: -45
+        },
+        {
+          id: "note_demo_2",
+          time: 0.0008,
+          voltage: 3.38,
+          targetChannel: 2,
+          text: "Stabilized 3.38V",
+          color: "#00e5ff",
+          relX: 25,
+          relY: -35
+        }
+      ];
+
+      for (let i = 1; i <= 4; i++) {
+        updateChannelUI(i);
+        calculateChannelMetrics(state.channels[i - 1]);
+      }
+      updateCursorDropdownOptions();
+      updateOSDChannels();
+
+      setCursorMode("XY");
+      state.cursors.x1 = -0.0015;
+      state.cursors.x2 = 0.0015;
+      state.cursors.y1 = 1.78;
+      state.cursors.y2 = -0.02;
+
+      redraw();
+    }
+
+    /* ==========================================================================
+       METRICS CALCULATION
+       ========================================================================== */
+    function calculateChannelMetrics(channel) {
+      if (!channel || !channel.data || !channel.data.voltage) {
+        channel.metrics = null;
+        updateMeasUI(channel.id);
+        return;
+      }
+
+      const v = channel.data.voltage;
+      const n = v.length;
+      if (n === 0) return;
+
+      const probe = channel.probe;
+      let min = Infinity;
+      let max = -Infinity;
+      let sum = 0;
+      let sumSq = 0;
+
+      for (let i = 0; i < n; i++) {
+        const val = v[i] * probe;
+        if (val < min) min = val;
+        if (val > max) max = val;
+        sum += val;
+        sumSq += val * val;
+      }
+
+      const mean = sum / n;
+      const rms = Math.sqrt(sumSq / n);
+      const vpp = max - min;
+
+      channel.metrics = {
+        min,
+        max,
+        vpp,
+        mean,
+        rms
+      };
+
+      updateMeasUI(channel.id);
+    }
+
+    function updateMeasUI(chId) {
+      const ch = state.channels[chId - 1];
+      const m = ch.metrics;
+
+      document.getElementById(`meas-probe-ch-${ch.id}`).textContent = `${ch.probe}X`;
+
+      if (!m || !ch.enabled) {
+        document.getElementById(`m-vmax-${ch.id}`).textContent = "--";
+        document.getElementById(`m-vmin-${ch.id}`).textContent = "--";
+        document.getElementById(`m-vpp-${ch.id}`).textContent = "--";
+        document.getElementById(`m-vmean-${ch.id}`).textContent = "--";
+        document.getElementById(`m-vrms-${ch.id}`).textContent = "--";
+        document.getElementById(`m-freq-${ch.id}`).textContent = "--";
+        return;
+      }
+
+      document.getElementById(`m-vmax-${ch.id}`).textContent = formatVoltage(m.max);
+      document.getElementById(`m-vmin-${ch.id}`).textContent = formatVoltage(m.min);
+      document.getElementById(`m-vpp-${ch.id}`).textContent = formatVoltage(m.vpp);
+      document.getElementById(`m-vmean-${ch.id}`).textContent = formatVoltage(m.mean);
+      document.getElementById(`m-vrms-${ch.id}`).textContent = formatVoltage(m.rms);
+      document.getElementById(`m-freq-${ch.id}`).textContent = m.vpp > 0.5 ? "1.00 kHz" : "--";
+    }
+
+    function formatVoltage(v) {
+      if (v === null || isNaN(v)) return "--";
+      const absV = Math.abs(v);
+      if (absV >= 1.0) return `${v.toFixed(2)} V`;
+      return `${(v * 1e3).toFixed(1)} mV`;
+    }
+
+    function formatTime(t) {
+      if (t === null || isNaN(t)) return "--";
+      const absT = Math.abs(t);
+      if (absT >= 1.0) return `${t.toFixed(3)} s`;
+      if (absT >= 1e-3) return `${(t * 1e3).toFixed(2)} ms`;
+      if (absT >= 1e-6) return `${(t * 1e6).toFixed(1)} µs`;
+      return `${(t * 1e9).toFixed(0)} ns`;
+    }
+
+    function formatFrequency(f) {
+      if (f === null || isNaN(f)) return "--";
+      if (f >= 1e6) return `${(f / 1e6).toFixed(2)} MHz`;
+      if (f >= 1e3) return `${(f / 1e3).toFixed(2)} kHz`;
+      return `${f.toFixed(1)} Hz`;
+    }
+
+    /* ==========================================================================
+       CANVAS RENDERING ENGINE
+       ========================================================================== */
+    function resizeCanvas() {
+      const rect = canvasWrapper.getBoundingClientRect();
+      const dpr = window.devicePixelRatio || 1;
+      canvas.width = Math.floor(rect.width * dpr);
+      canvas.height = Math.floor(rect.height * dpr);
+      ctx.setTransform(1, 0, 0, 1, 0, 0);
+      ctx.scale(dpr, dpr);
+      redraw();
+    }
+
+    function redraw() {
+      const width = canvas.width / (window.devicePixelRatio || 1);
+      const height = canvas.height / (window.devicePixelRatio || 1);
+
+      ctx.clearRect(0, 0, width, height);
+
+      drawOscilloscopeGrid(width, height);
+
+      state.channels.forEach(ch => {
+        if (ch.enabled && ch.data && ch.data.time.length > 0) {
+          drawCleanChannelWaveform(ch, width, height);
+        }
+      });
+
+      if (state.math.enabled) {
+        drawMathWaveform(width, height);
+      }
+
+      drawGroundMarkers(width, height);
+
+      drawCursors(width, height);
+
+      drawNotes(width, height);
+    }
+
+    function drawOscilloscopeGrid(w, h) {
+      const gridMode = document.getElementById("selGridStyle").value;
+      const hDivs = gridMode === "wide" ? 12 : 10;
+      state.timebase.divisions = hDivs;
+      const vDivs = state.vDivisions;
+
+      const dx = w / hDivs;
+      const dy = h / vDivs;
+
+      ctx.lineWidth = 1;
+
+      ctx.strokeStyle = "#152033";
+      ctx.beginPath();
+      for (let i = 1; i < hDivs; i++) {
+        const x = Math.round(i * dx) + 0.5;
+        ctx.moveTo(x, 0);
+        ctx.lineTo(x, h);
+      }
+      for (let j = 1; j < vDivs; j++) {
+        const y = Math.round(j * dy) + 0.5;
+        ctx.moveTo(0, y);
+        ctx.lineTo(w, y);
+      }
+      ctx.stroke();
+
+      const midX = Math.round(w / 2) + 0.5;
+      const midY = Math.round(h / 2) + 0.5;
+
+      ctx.strokeStyle = "#283e61";
+      ctx.beginPath();
+      ctx.moveTo(midX, 0);
+      ctx.lineTo(midX, h);
+      ctx.moveTo(0, midY);
+      ctx.lineTo(w, midY);
+      ctx.stroke();
+
+      ctx.strokeStyle = "#385685";
+      ctx.beginPath();
+      const subX = dx / 5;
+      for (let x = 0; x <= w; x += subX) {
+        ctx.moveTo(x, midY - 3);
+        ctx.lineTo(x, midY + 3);
+      }
+      const subY = dy / 5;
+      for (let y = 0; y <= h; y += subY) {
+        ctx.moveTo(midX - 3, y);
+        ctx.lineTo(midX + 3, y);
+      }
+      ctx.stroke();
+
+      ctx.strokeStyle = "#22334d";
+      ctx.strokeRect(0.5, 0.5, w - 1, h - 1);
+    }
+
+    function drawCleanChannelWaveform(ch, w, h) {
+      const times = ch.data.time;
+      const volts = ch.data.voltage;
+      const n = times.length;
+      if (n === 0) return;
+
+      const tb = state.timebase;
+      const totalSpan = tb.scale * tb.divisions;
+      const tStart = tb.offset - totalSpan / 2;
+      const tEnd = tb.offset + totalSpan / 2;
+
+      const vScale = ch.vScale;
+      const vOffset = ch.vOffset;
+      const tOffset = ch.tOffset || 0.0;
+      const probe = ch.probe;
+      const invert = ch.invert ? -1 : 1;
+
+      const midY = h / 2;
+      const pixelsPerVolt = (h / state.vDivisions) / vScale;
+      const timeToPixel = w / totalSpan;
+
+      ctx.save();
+      ctx.strokeStyle = ch.color;
+      ctx.fillStyle = ch.color;
+      ctx.lineWidth = 1.7;
+      ctx.lineJoin = "round";
+
+      // Calculate effective start and end in data time frame
+      const effStart = tStart - tOffset;
+      const effEnd = tEnd - tOffset;
+
+      if (effEnd < times[0] || effStart > times[n - 1]) {
+        ctx.restore();
+        return;
+      }
+
+      let idxStart = 0;
+      let idxEnd = n - 1;
+      let l = 0, r = n - 1;
+      while (l <= r) {
+        const m = (l + r) >> 1;
+        if (times[m] < effStart) { idxStart = m; l = m + 1; }
+        else r = m - 1;
+      }
+      l = 0; r = n - 1;
+      while (l <= r) {
+        const m = (l + r) >> 1;
+        if (times[m] <= effEnd) { idxEnd = m; l = m + 1; }
+        else r = m - 1;
+      }
+
+      idxStart = Math.max(0, idxStart - 2);
+      idxEnd = Math.min(n - 1, idxEnd + 2);
+
+      const visiblePoints = idxEnd - idxStart;
+      const step = Math.max(1, Math.floor(visiblePoints / (w * 2)));
+      const isDots = document.getElementById("selDrawMode").value === "dots";
+
+      if (isDots) {
+        for (let i = idxStart; i <= idxEnd; i += step) {
+          const t = times[i] + tOffset;
+          const px = (t - tStart) * timeToPixel;
+          const v = volts[i] * probe * invert;
+          const py = midY - (v + vOffset) * pixelsPerVolt;
+          ctx.fillRect(px - 1, py - 1, 2, 2);
+        }
+      } else {
+        ctx.beginPath();
+        let started = false;
+
+        for (let i = idxStart; i <= idxEnd; i += step) {
+          const t = times[i] + tOffset;
+          const px = (t - tStart) * timeToPixel;
+          const v = volts[i] * probe * invert;
+          const py = midY - (v + vOffset) * pixelsPerVolt;
+
+          if (!started) {
+            ctx.moveTo(px, py);
+            started = true;
+          } else {
+            ctx.lineTo(px, py);
+          }
+        }
+        ctx.stroke();
+      }
+
+      ctx.restore();
+    }
+
+    function drawMathWaveform(w, h) {
+      const ch1 = state.channels[0];
+      const ch2 = state.channels[1];
+      if (!ch1.data || !ch2.data) return;
+
+      const times = ch1.data.time;
+      const v1 = ch1.data.voltage;
+      const v2 = ch2.data.voltage;
+      const n = Math.min(v1.length, v2.length);
+
+      const tb = state.timebase;
+      const totalSpan = tb.scale * tb.divisions;
+      const tStart = tb.offset - totalSpan / 2;
+      const midY = h / 2;
+      const pixelsPerVolt = (h / state.vDivisions) / state.math.vScale;
+      const timeToPixel = w / totalSpan;
+
+      ctx.save();
+      ctx.strokeStyle = state.math.color;
+      ctx.lineWidth = 1.7;
+      ctx.beginPath();
+      let started = false;
+
+      for (let i = 0; i < n; i += 2) {
+        const t = times[i];
+        const px = (t - tStart) * timeToPixel;
+        if (px < 0) continue;
+        if (px > w) break;
+
+        let val = 0;
+        const val1 = v1[i] * ch1.probe;
+        const val2 = v2[i] * ch2.probe;
+
+        if (state.math.op === "sub") val = val1 - val2;
+        else if (state.math.op === "add") val = val1 + val2;
+        else if (state.math.op === "inv1") val = -val1;
+
+        const py = midY - (val + state.math.vOffset) * pixelsPerVolt;
+
+        if (!started) {
+          ctx.moveTo(px, py);
+          started = true;
+        } else {
+          ctx.lineTo(px, py);
+        }
+      }
+
+      ctx.stroke();
+      ctx.restore();
+    }
+
+    function drawGroundMarkers(w, h) {
+      const midY = h / 2;
+
+      state.channels.forEach(ch => {
+        if (!ch.enabled) return;
+        const pixelsPerVolt = (h / state.vDivisions) / ch.vScale;
+        const gy = midY - ch.vOffset * pixelsPerVolt;
+
+        ctx.fillStyle = ch.color;
+        ctx.beginPath();
+        ctx.moveTo(0, gy);
+        ctx.lineTo(12, gy - 6);
+        ctx.lineTo(12, gy + 6);
+        ctx.closePath();
+        ctx.fill();
+
+        ctx.fillStyle = "#000";
+        ctx.font = "bold 9px sans-serif";
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        ctx.fillText(ch.id, 6, gy);
+      });
+    }
+
+    function drawCursors(w, h) {
+      if (state.cursors.mode === "off") return;
+
+      const tb = state.timebase;
+      const totalSpan = tb.scale * tb.divisions;
+      const tStart = tb.offset - totalSpan / 2;
+      const timeToPixel = w / totalSpan;
+
+      const showX = (state.cursors.mode === "X" || state.cursors.mode === "XY");
+      const showY = (state.cursors.mode === "Y" || state.cursors.mode === "XY");
+
+      ctx.save();
+
+      let x1Pix = -100, x2Pix = -100, y1Pix = -100, y2Pix = -100;
+
+      // 1. X CURSORS (TIME)
+      if (showX) {
+        x1Pix = (state.cursors.x1 - tStart) * timeToPixel;
+        x2Pix = (state.cursors.x2 - tStart) * timeToPixel;
+
+        ctx.lineWidth = 1.4;
+        ctx.setLineDash([5, 4]);
+        ctx.strokeStyle = "#ff9100";
+
+        [ { pix: x1Pix, tag: "X1" }, { pix: x2Pix, tag: "X2" } ].forEach(c => {
+          if (c.pix >= 0 && c.pix <= w) {
+            ctx.beginPath();
+            ctx.moveTo(c.pix, 0);
+            ctx.lineTo(c.pix, h);
+            ctx.stroke();
+
+            ctx.fillStyle = "#ff9100";
+            ctx.fillRect(c.pix - 12, 0, 24, 16);
+            ctx.fillStyle = "#000";
+            ctx.font = "bold 9.5px monospace";
+            ctx.textAlign = "center";
+            ctx.fillText(c.tag, c.pix, 11);
+          }
+        });
+
+        const dt = Math.abs(state.cursors.x2 - state.cursors.x1);
+        document.getElementById("c-dx").textContent = formatTime(dt);
+        document.getElementById("c-inv-dx").textContent = dt > 0 ? formatFrequency(1 / dt) : "--";
+
+        if (!showY) {
+          const targetCh = state.channels[state.cursors.targetChannel - 1] || state.channels[0];
+          if (targetCh && targetCh.data && targetCh.data.time) {
+            const v1 = interpolateVoltageAtTime(targetCh, state.cursors.x1);
+            const v2 = interpolateVoltageAtTime(targetCh, state.cursors.x2);
+            document.getElementById("c-dy").textContent = formatVoltage(v2 - v1);
+            document.getElementById("c-y1y2").textContent = `${formatVoltage(v1)} / ${formatVoltage(v2)}`;
+          } else {
+            document.getElementById("c-dy").textContent = "--";
+            document.getElementById("c-y1y2").textContent = "--";
+          }
+        }
+      }
+
+      // 2. Y CURSORS (VOLTAGE)
+      if (showY) {
+        const midY = h / 2;
+        const ch = state.channels[state.cursors.targetChannel - 1];
+        const pixelsPerVolt = (h / state.vDivisions) / ch.vScale;
+
+        y1Pix = midY - (state.cursors.y1 + ch.vOffset) * pixelsPerVolt;
+        y2Pix = midY - (state.cursors.y2 + ch.vOffset) * pixelsPerVolt;
+        const cursorColor = ch.color || "#00e5ff";
+
+        ctx.lineWidth = 1.4;
+        ctx.setLineDash([5, 4]);
+        ctx.strokeStyle = cursorColor;
+
+        [ { pix: y1Pix, tag: `Y1 (${ch.alias || ch.name})`, val: state.cursors.y1 }, 
+          { pix: y2Pix, tag: `Y2 (${ch.alias || ch.name})`, val: state.cursors.y2 } ].forEach(c => {
+          // Clamp drawing position to ensure cursor lines and labels remain visible within canvas
+          const drawY = Math.max(8, Math.min(h - 8, c.pix));
+          const isClamped = c.pix < 8 || c.pix > h - 8;
+
+          ctx.beginPath();
+          ctx.moveTo(0, drawY);
+          ctx.lineTo(w, drawY);
+          ctx.stroke();
+
+          ctx.fillStyle = cursorColor;
+          ctx.fillRect(0, drawY - 8, 54, 16);
+          ctx.fillStyle = "#000";
+          ctx.font = "bold 9.5px monospace";
+          ctx.textAlign = "left";
+          ctx.fillText(c.tag + (isClamped ? "•" : ""), 4, drawY + 3);
+
+          ctx.fillStyle = cursorColor;
+          ctx.fillRect(w - 65, drawY - 8, 65, 16);
+          ctx.fillStyle = "#000";
+          ctx.textAlign = "right";
+          ctx.fillText(formatVoltage(c.val), w - 4, drawY + 3);
+        });
+
+        const dy = Math.abs(state.cursors.y2 - state.cursors.y1);
+        document.getElementById("c-dy").textContent = formatVoltage(dy);
+        document.getElementById("c-y1y2").textContent = `${formatVoltage(state.cursors.y1)} / ${formatVoltage(state.cursors.y2)}`;
+      }
+
+      // 3. INTERSECTIONS IN BOTH MODE
+      if (showX && showY) {
+        ctx.setLineDash([]);
+        ctx.strokeStyle = "#ffffff";
+        ctx.lineWidth = 1.5;
+        const intersections = [
+          [x1Pix, y1Pix], [x1Pix, y2Pix], [x2Pix, y1Pix], [x2Pix, y2Pix]
+        ];
+        intersections.forEach(([px, py]) => {
+          if (px >= 0 && px <= w && py >= 0 && py <= h) {
+            ctx.beginPath();
+            ctx.moveTo(px - 5, py);
+            ctx.lineTo(px + 5, py);
+            ctx.moveTo(px, py - 5);
+            ctx.lineTo(px, py + 5);
+            ctx.stroke();
+          }
+        });
+      }
+
+      ctx.restore();
+    }
+
+    function drawRoundedRect(c, x, y, width, height, radius) {
+      if (typeof c.roundRect === "function") {
+        c.beginPath();
+        c.roundRect(x, y, width, height, radius);
+        c.closePath();
+        return;
+      }
+      if (radius > width / 2) radius = width / 2;
+      if (radius > height / 2) radius = height / 2;
+      c.beginPath();
+      c.moveTo(x + radius, y);
+      c.lineTo(x + width - radius, y);
+      c.arcTo(x + width, y, x + width, y + radius, radius);
+      c.lineTo(x + width, y + height - radius);
+      c.arcTo(x + width, y + height, x + width - radius, y + height, radius);
+      c.lineTo(x + radius, y + height);
+      c.arcTo(x, y + height, x, y + height - radius, radius);
+      c.lineTo(x, y + radius);
+      c.arcTo(x, y, x + radius, y, radius);
+      c.closePath();
+    }
+
+    function drawNotes(w, h) {
+      if (!state.notes || state.notes.length === 0) return;
+
+      const tb = state.timebase;
+      const totalSpan = tb.scale * tb.divisions;
+      const tStart = tb.offset - totalSpan / 2;
+      const timeToPixel = w / totalSpan;
+
+      ctx.save();
+
+      state.notes.forEach(note => {
+        // Calculate anchor pixel
+        const anchorX = (note.time - tStart) * timeToPixel;
+
+        const targetCh = state.channels[(note.targetChannel || 1) - 1] || state.channels[0];
+        const midY = h / 2;
+        const pixelsPerVolt = (h / state.vDivisions) / targetCh.vScale;
+        const anchorY = midY - (note.voltage + targetCh.vOffset) * pixelsPerVolt;
+
+        const noteColor = note.color || "#fbbf24";
+        const lines = (note.text || "").split("\n");
+
+        // Measure text size
+        ctx.font = "11px 'JetBrains Mono', 'Segoe UI', monospace";
+        let maxTextW = 60;
+        lines.forEach(l => {
+          const tw = ctx.measureText(l).width;
+          if (tw > maxTextW) maxTextW = tw;
+        });
+
+        const padX = 10;
+        const lineH = 15;
+        const headerH = 17;
+        const boxW = Math.max(90, Math.ceil(maxTextW + padX * 2 + 18));
+        const boxH = headerH + lines.length * lineH + 8;
+
+        const relX = note.relX !== undefined ? note.relX : 20;
+        const relY = note.relY !== undefined ? note.relY : -40;
+
+        let boxX = anchorX + relX;
+        let boxY = anchorY + relY;
+
+        // Save hit rects for mouse interaction
+        note._bodyRect = { x: boxX, y: boxY, w: boxW, h: boxH };
+        note._closeRect = { x: boxX + boxW - 17, y: boxY + 2, w: 15, h: 15 };
+
+        // 1. Anchor dot
+        if (anchorX >= -50 && anchorX <= w + 50 && anchorY >= -50 && anchorY <= h + 50) {
+          ctx.beginPath();
+          ctx.arc(anchorX, anchorY, 3.5, 0, Math.PI * 2);
+          ctx.fillStyle = noteColor;
+          ctx.fill();
+          ctx.lineWidth = 1.5;
+          ctx.strokeStyle = "#080c14";
+          ctx.stroke();
+
+          // 2. Leader line connecting anchor to box
+          const targetBoxX = Math.max(boxX, Math.min(anchorX, boxX + boxW));
+          const targetBoxY = Math.max(boxY, Math.min(anchorY, boxY + boxH));
+
+          ctx.beginPath();
+          ctx.setLineDash([3, 3]);
+          ctx.lineWidth = 1.2;
+          ctx.strokeStyle = noteColor;
+          ctx.moveTo(anchorX, anchorY);
+          ctx.lineTo(targetBoxX, targetBoxY);
+          ctx.stroke();
+          ctx.setLineDash([]);
+        }
+
+        // 3. Note Card Background
+        drawRoundedRect(ctx, boxX, boxY, boxW, boxH, 6);
+        ctx.fillStyle = "rgba(10, 16, 28, 0.92)";
+        ctx.fill();
+        ctx.lineWidth = 1.5;
+        ctx.strokeStyle = noteColor;
+        ctx.stroke();
+
+        // 4. Color accent bar on top
+        ctx.save();
+        ctx.beginPath();
+        drawRoundedRect(ctx, boxX, boxY, boxW, 4, 2);
+        ctx.fillStyle = noteColor;
+        ctx.fill();
+        ctx.restore();
+
+        // 5. Delete button ('×')
+        ctx.fillStyle = "rgba(255, 255, 255, 0.6)";
+        ctx.font = "bold 13px sans-serif";
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        ctx.fillText("×", note._closeRect.x + 7.5, note._closeRect.y + 7.5);
+
+        // 6. Channel badge / Anchor summary in small font
+        ctx.textAlign = "left";
+        ctx.textBaseline = "top";
+        ctx.font = "9px 'JetBrains Mono', sans-serif";
+        ctx.fillStyle = "rgba(255, 255, 255, 0.45)";
+        const chNameStr = targetCh.alias ? `${targetCh.name}·${targetCh.alias}` : targetCh.name;
+        ctx.fillText(chNameStr, boxX + padX, boxY + 6);
+
+        // 7. Note text content
+        ctx.font = "11px 'JetBrains Mono', 'Segoe UI', monospace";
+        ctx.fillStyle = "#f1f5f9";
+        lines.forEach((line, idx) => {
+          ctx.fillText(line, boxX + padX, boxY + headerH + idx * lineH);
+        });
+      });
+
+      ctx.restore();
+    }
+
+    function interpolateVoltageAtTime(channel, tTarget) {
+      if (!channel || !channel.data || !channel.data.time) return 0;
+      const times = channel.data.time;
+      const volts = channel.data.voltage;
+      const n = times.length;
+      if (n === 0) return 0;
+
+      // Adjust for channel's individual time offset
+      const tPhysical = tTarget - (channel.tOffset || 0.0);
+
+      if (tPhysical <= times[0]) return volts[0] * channel.probe;
+      if (tPhysical >= times[n - 1]) return volts[n - 1] * channel.probe;
+
+      let low = 0, high = n - 1;
+      while (high - low > 1) {
+        const mid = (low + high) >> 1;
+        if (times[mid] > tPhysical) high = mid;
+        else low = mid;
+      }
+
+      const frac = (tPhysical - times[low]) / (times[high] - times[low]);
+      return (volts[low] + frac * (volts[high] - volts[low])) * channel.probe;
+    }
+
+    /* ==========================================================================
+       UI CONTROLS & EVENT HANDLERS
+       ========================================================================== */
+    function toggleChannel(chId) {
+      const ch = state.channels[chId - 1];
+      ch.enabled = !ch.enabled;
+      updateChannelUI(chId);
+      updateMeasUI(chId);
+      redraw();
+    }
+
+    function onProbeChange(chId, val) {
+      const ch = state.channels[chId - 1];
+      if (val === "custom") {
+        const p = parseFloat(prompt("Probe attenuation factor (e.g., 1, 10, 100):", ch.probe));
+        if (!isNaN(p) && p > 0) ch.probe = p;
+      } else {
+        ch.probe = parseFloat(val);
+      }
+      calculateChannelMetrics(ch);
+      redraw();
+    }
+
+    function onVScaleChange(chId, val) {
+      state.channels[chId - 1].vScale = parseFloat(val);
+      redraw();
+    }
+
+    function adjustVOffset(chId, deltaV) {
+      const ch = state.channels[chId - 1];
+      ch.vOffset += deltaV;
+      document.getElementById(`voffset-ch-${ch.id}`).value = `${ch.vOffset.toFixed(2)} V`;
+      redraw();
+    }
+
+    function resetVOffset(chId) {
+      const ch = state.channels[chId - 1];
+      ch.vOffset = 0.0;
+      document.getElementById(`voffset-ch-${ch.id}`).value = "0.00 V";
+      redraw();
+    }
+
+    function promptVOffset(chId) {
+      const ch = state.channels[chId - 1];
+      const val = prompt(`Set Y offset (voltage) for ${ch.name} (V):`, ch.vOffset.toFixed(2));
+      if (val !== null && val.trim() !== "") {
+        const parsed = parseFloat(val);
+        if (!isNaN(parsed)) {
+          ch.vOffset = parsed;
+          document.getElementById(`voffset-ch-${ch.id}`).value = `${ch.vOffset.toFixed(2)} V`;
+          redraw();
+        }
+      }
+    }
+
+    function adjustTOffset(chId, direction) {
+      const ch = state.channels[chId - 1];
+      // Step by 0.2 division of the current timebase scale for fine alignment
+      const step = state.timebase.scale * 0.2;
+      ch.tOffset = (ch.tOffset || 0.0) + direction * step;
+      if (Math.abs(ch.tOffset) < 1e-13) ch.tOffset = 0.0;
+      const el = document.getElementById(`toffset-ch-${ch.id}`);
+      if (el) el.value = formatTime(ch.tOffset);
+      redraw();
+    }
+
+    function resetTOffset(chId) {
+      const ch = state.channels[chId - 1];
+      ch.tOffset = 0.0;
+      const el = document.getElementById(`toffset-ch-${ch.id}`);
+      if (el) el.value = "0.00 ns";
+      redraw();
+    }
+
+    function promptTOffset(chId) {
+      const ch = state.channels[chId - 1];
+      const currentStr = formatTime(ch.tOffset || 0.0);
+      const val = prompt(`Set X offset (time delay) for ${ch.name}:\n(e.g., 50us, 1.5ms, -200ns, 0)`, currentStr);
+      if (val !== null && val.trim() !== "") {
+        const parsed = parseTimeString(val);
+        if (!isNaN(parsed)) {
+          ch.tOffset = parsed;
+          const el = document.getElementById(`toffset-ch-${ch.id}`);
+          if (el) el.value = formatTime(ch.tOffset);
+          redraw();
+        } else {
+          alert("Invalid time format. Examples: 50us, 1.2ms, -200ns, 0");
+        }
+      }
+    }
+
+    function parseTimeString(str) {
+      str = str.trim().toLowerCase();
+      if (str === "0") return 0;
+      let multiplier = 1;
+      if (str.endsWith("ns")) { multiplier = 1e-9; str = str.slice(0, -2); }
+      else if (str.endsWith("us") || str.endsWith("µs")) { multiplier = 1e-6; str = str.slice(0, -2); }
+      else if (str.endsWith("ms")) { multiplier = 1e-3; str = str.slice(0, -2); }
+      else if (str.endsWith("s")) { multiplier = 1; str = str.slice(0, -1); }
+      const val = parseFloat(str);
+      return isNaN(val) ? NaN : val * multiplier;
+    }
+
+    function toggleInvert(chId) {
+      const ch = state.channels[chId - 1];
+      ch.invert = !ch.invert;
+      const btn = document.getElementById(`btn-inv-ch-${chId}`);
+      if (ch.invert) btn.classList.add("btn-active");
+      else btn.classList.remove("btn-active");
+      redraw();
+    }
+
+    function onTimeScaleChange(val) {
+      state.timebase.scale = parseFloat(val);
+      document.getElementById("lblTimeScale").textContent = `${formatTime(state.timebase.scale)}/div`;
+      document.getElementById("osdTB").textContent = `TB: ${formatTime(state.timebase.scale)}`;
+      redraw();
+    }
+
+    function adjustTimeOffset(direction) {
+      state.timebase.offset += direction * state.timebase.scale * 0.5;
+      document.getElementById("numTimeOffset").value = formatTime(state.timebase.offset);
+      redraw();
+    }
+
+    function resetTimeOffset() {
+      state.timebase.offset = 0.0;
+      document.getElementById("numTimeOffset").value = "0.00 ms";
+      redraw();
+    }
+
+    function setCursorMode(mode) {
+      state.cursors.mode = mode;
+      ["cursorModeOff", "cursorModeX", "cursorModeY", "cursorModeXY"].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.classList.remove("active");
+      });
+
+      const label = document.getElementById("cursorActiveModeLabel");
+      const selTarget = document.getElementById("selCursorYTarget");
+
+      if (mode === "off") {
+        document.getElementById("cursorModeOff").classList.add("active");
+        label.textContent = "OFF";
+        if (selTarget) selTarget.classList.add("hidden");
+      } else {
+        if (mode === "X") {
+          document.getElementById("cursorModeX").classList.add("active");
+          label.textContent = "X (TIME)";
+        } else if (mode === "Y") {
+          document.getElementById("cursorModeY").classList.add("active");
+          label.textContent = "Y (VOLTAGE)";
+        } else if (mode === "XY") {
+          document.getElementById("cursorModeXY").classList.add("active");
+          label.textContent = "X & Y (BOTH)";
+        }
+
+        // Keep channel target selector visible for X, Y, and XY modes
+        if (selTarget) {
+          selTarget.classList.remove("hidden");
+          selTarget.value = String(state.cursors.targetChannel || 1);
+        }
+
+        const ch = state.channels[(state.cursors.targetChannel || 1) - 1];
+        if (ch) {
+          if (!ch.enabled) {
+            ch.enabled = true;
+            updateChannelUI(ch.id);
+          }
+          if (ch.data && ch.data.voltage && ch.metrics) {
+            state.cursors.y1 = ch.metrics.max;
+            state.cursors.y2 = ch.metrics.min;
+          } else {
+            state.cursors.y1 = ch.vOffset + ch.vScale * 1.5;
+            state.cursors.y2 = ch.vOffset - ch.vScale * 1.5;
+          }
+        }
+      }
+      redraw();
+    }
+
+    function onCursorTargetChannelChange(val) {
+      state.cursors.targetChannel = parseInt(val);
+      const ch = state.channels[state.cursors.targetChannel - 1];
+      if (ch) {
+        // Automatically enable target channel and update UI
+        if (!ch.enabled) {
+          ch.enabled = true;
+          updateChannelUI(ch.id);
+        }
+
+        if (ch.data && ch.data.voltage && ch.metrics) {
+          state.cursors.y1 = ch.metrics.max;
+          state.cursors.y2 = ch.metrics.min;
+        } else {
+          state.cursors.y1 = ch.vOffset + ch.vScale * 1.5;
+          state.cursors.y2 = ch.vOffset - ch.vScale * 1.5;
+        }
+      }
+
+      // If user picks channel while cursors are off, switch to Y mode. If in X mode, switch to XY mode
+      if (state.cursors.mode === "off") {
+        setCursorMode("Y");
+      } else if (state.cursors.mode === "X") {
+        setCursorMode("XY");
+      }
+
+      redraw();
+    }
+
+    function toggleMathChannel() {
+      state.math.enabled = !state.math.enabled;
+      const toggle = document.getElementById("mathToggle");
+      if (state.math.enabled) {
+        toggle.classList.add("on");
+        toggle.textContent = "ON";
+      } else {
+        toggle.classList.remove("on");
+        toggle.textContent = "OFF";
+      }
+      redraw();
+    }
+
+    function onMathOpChange(val) {
+      state.math.op = val;
+      redraw();
+    }
+
+    function onMathScaleChange(val) {
+      state.math.vScale = parseFloat(val);
+      redraw();
+    }
+
+    function autoset() {
+      let tMin = Infinity, tMax = -Infinity;
+      let hasData = false;
+
+      state.channels.forEach(ch => {
+        if (ch.enabled && ch.data && ch.data.time.length > 0) {
+          hasData = true;
+          const t = ch.data.time;
+          if (t[0] < tMin) tMin = t[0];
+          if (t[t.length - 1] > tMax) tMax = t[t.length - 1];
+        }
+      });
+
+      if (hasData && tMax > tMin) {
+        state.timebase.offset = 0.0;
+        state.timebase.scale = 0.0005; // 500 µs/div
+        document.getElementById("selTimeScale").value = "5e-4";
+        document.getElementById("lblTimeScale").textContent = "500 µs/div";
+        document.getElementById("numTimeOffset").value = "0.00 ms";
+      }
+      redraw();
+    }
+
+    function updateChannelUI(chId) {
+      const ch = state.channels[chId - 1];
+      const card = document.getElementById(`card-ch-${ch.id}`);
+      const toggle = document.getElementById(`toggle-ch-${ch.id}`);
+
+      if (ch.enabled) {
+        card.classList.add("active");
+        toggle.classList.add("on");
+        toggle.textContent = "ON";
+      } else {
+        card.classList.remove("active");
+        toggle.classList.remove("on");
+        toggle.textContent = "OFF";
+      }
+
+      const titleEl = document.getElementById(`ch-title-${ch.id}`);
+      if (titleEl) {
+        titleEl.textContent = ch.alias ? `${ch.name} [${ch.alias}]` : ch.name;
+      }
+      const aliasInput = document.getElementById(`alias-ch-${ch.id}`);
+      if (aliasInput && aliasInput.value !== (ch.alias || "")) {
+        aliasInput.value = ch.alias || "";
+      }
+
+      document.getElementById(`filename-ch-${ch.id}`).textContent = ch.fileName;
+      if (ch.data && ch.data.voltage) {
+        document.getElementById(`samples-ch-${ch.id}`).textContent = `${(ch.data.voltage.length / 1000).toFixed(1)}k Sa`;
+      }
+      const voffEl = document.getElementById(`voffset-ch-${ch.id}`);
+      if (voffEl) voffEl.value = `${ch.vOffset.toFixed(2)} V`;
+      const toffEl = document.getElementById(`toffset-ch-${ch.id}`);
+      if (toffEl) toffEl.value = formatTime(ch.tOffset || 0.0);
+    }
+
+    function getChannelDisplayName(ch) {
+      if (!ch) return "";
+      return ch.alias ? `${ch.name} (${ch.alias})` : ch.name;
+    }
+
+    function setChannelAlias(chId, val) {
+      const ch = state.channels[chId - 1];
+      if (!ch) return;
+      ch.alias = (val || "").trim();
+      updateChannelUI(chId);
+      updateMeasUI(chId);
+      updateCursorDropdownOptions();
+      updateOSDChannels();
+      redraw();
+    }
+
+    function promptChannelAlias(chId) {
+      const ch = state.channels[chId - 1];
+      const newAlias = prompt(`Set custom alias for ${ch.name} (e.g. VCAP, GATE, CLK):`, ch.alias || "");
+      if (newAlias !== null) {
+        setChannelAlias(chId, newAlias);
+      }
+    }
+
+    function updateCursorDropdownOptions() {
+      const selTarget = document.getElementById("selCursorYTarget");
+      if (!selTarget) return;
+      const currentVal = selTarget.value;
+      selTarget.innerHTML = `
+        <option value="1">Measure ${getChannelDisplayName(state.channels[0])} (Yellow)</option>
+        <option value="2">Measure ${getChannelDisplayName(state.channels[1])} (Cyan)</option>
+        <option value="3">Measure ${getChannelDisplayName(state.channels[2])} (Magenta)</option>
+        <option value="4">Measure ${getChannelDisplayName(state.channels[3])} (Green)</option>
+      `;
+      selTarget.value = currentVal;
+    }
+
+    function updateOSDChannels() {
+      const el = document.getElementById("osdChannelsHeader");
+      if (!el) return;
+      el.innerHTML = state.channels.map(ch => {
+        if (!ch.enabled) return "";
+        const label = ch.alias ? `${ch.name} (${ch.alias})` : ch.name;
+        return `<span class="osd-pill" style="color:${ch.color};">${label}: ${formatVoltage(ch.vScale)}/div</span>`;
+      }).join("");
+    }
+
+    /* ==========================================================================
+       EVENT LISTENERS & NOTE INTERACTION
+       ========================================================================== */
+    function setupEventListeners() {
+      const dropOverlay = document.getElementById("dropOverlay");
+      window.addEventListener("dragenter", (e) => { e.preventDefault(); dropOverlay.classList.add("active"); });
+      dropOverlay.addEventListener("dragover", (e) => e.preventDefault());
+      dropOverlay.addEventListener("dragleave", (e) => {
+        if (e.relatedTarget === null || e.relatedTarget === document.body) dropOverlay.classList.remove("active");
+      });
+      window.addEventListener("drop", (e) => {
+        e.preventDefault();
+        dropOverlay.classList.remove("active");
+        if (e.dataTransfer.files) {
+          Array.from(e.dataTransfer.files).forEach(f => loadCSVFile(f));
+        }
+      });
+
+      document.getElementById("btnLoadRealRamp").addEventListener("click", loadDemoWaveformSignal);
+      document.getElementById("btnAutoset").addEventListener("click", autoset);
+      document.getElementById("btnExportImage").addEventListener("click", exportCanvasImage);
+      document.getElementById("btnExportMeas").addEventListener("click", exportMeasurementsCSV);
+
+      // Note modal input keyboard shortcuts
+      const noteInput = document.getElementById("noteTextInput");
+      if (noteInput) {
+        noteInput.addEventListener("keydown", (e) => {
+          if (e.key === "Enter" && !e.shiftKey) {
+            e.preventDefault();
+            saveNoteFromModal();
+          } else if (e.key === "Escape") {
+            closeNoteModal();
+          }
+        });
+      }
+
+      // Mouse Canvas Interaction
+      canvas.addEventListener("mousedown", onCanvasMouseDown);
+      window.addEventListener("mousemove", onCanvasMouseMove);
+      window.addEventListener("mouseup", onCanvasMouseUp);
+      canvas.addEventListener("wheel", onCanvasWheel, { passive: false });
+      canvas.addEventListener("dblclick", (e) => {
+        const rect = canvas.getBoundingClientRect();
+        openNoteModalAtPos(e.clientX - rect.left, e.clientY - rect.top);
+      });
+    }
+
+    function onCanvasMouseDown(e) {
+      const rect = canvas.getBoundingClientRect();
+      const mouseX = e.clientX - rect.left;
+      const mouseY = e.clientY - rect.top;
+      const w = rect.width;
+      const h = rect.height;
+
+      // 1. Check if clicked on note delete '×'
+      for (let i = state.notes.length - 1; i >= 0; i--) {
+        const n = state.notes[i];
+        if (n._closeRect) {
+          const cr = n._closeRect;
+          if (mouseX >= cr.x && mouseX <= cr.x + cr.w && mouseY >= cr.y && mouseY <= cr.y + cr.h) {
+            state.notes.splice(i, 1);
+            redraw();
+            return;
+          }
+        }
+      }
+
+      // 2. Check if clicked on note body to drag or edit
+      for (let i = state.notes.length - 1; i >= 0; i--) {
+        const n = state.notes[i];
+        if (n._bodyRect) {
+          const br = n._bodyRect;
+          if (mouseX >= br.x && mouseX <= br.x + br.w && mouseY >= br.y && mouseY <= br.y + br.h) {
+            state.interaction.draggingNote = {
+              note: n,
+              startX: mouseX,
+              startY: mouseY,
+              initialRelX: n.relX !== undefined ? n.relX : 20,
+              initialRelY: n.relY !== undefined ? n.relY : -40,
+              moved: false
+            };
+            return;
+          }
+        }
+      }
+
+      const showX = (state.cursors.mode === "X" || state.cursors.mode === "XY");
+      const showY = (state.cursors.mode === "Y" || state.cursors.mode === "XY");
+
+      let closestDist = 18;
+      let targetDrag = null;
+
+      // 3. Time cursors (X1, X2)
+      if (showX) {
+        const tb = state.timebase;
+        const totalSpan = tb.scale * tb.divisions;
+        const tStart = tb.offset - totalSpan / 2;
+        const x1Pix = (state.cursors.x1 - tStart) * (w / totalSpan);
+        const x2Pix = (state.cursors.x2 - tStart) * (w / totalSpan);
+
+        const d1 = Math.abs(mouseX - x1Pix);
+        const d2 = Math.abs(mouseX - x2Pix);
+        if (d1 < closestDist) { closestDist = d1; targetDrag = "x1"; }
+        if (d2 < closestDist) { closestDist = d2; targetDrag = "x2"; }
+      }
+
+      // 4. Voltage cursors (Y1, Y2)
+      if (showY) {
+        const midY = h / 2;
+        const ch = state.channels[state.cursors.targetChannel - 1];
+        const pixelsPerVolt = (h / state.vDivisions) / ch.vScale;
+        const y1Pix = midY - (state.cursors.y1 + ch.vOffset) * pixelsPerVolt;
+        const y2Pix = midY - (state.cursors.y2 + ch.vOffset) * pixelsPerVolt;
+
+        const dy1 = Math.abs(mouseY - y1Pix);
+        const dy2 = Math.abs(mouseY - y2Pix);
+        if (dy1 < closestDist) { closestDist = dy1; targetDrag = "y1"; }
+        if (dy2 < closestDist) { closestDist = dy2; targetDrag = "y2"; }
+      }
+
+      if (targetDrag) {
+        state.cursors.dragging = targetDrag;
+        return;
+      }
+
+      // 5. If note mode is active: open note modal immediately on click
+      if (state.noteMode) {
+        openNoteModalAtPos(mouseX, mouseY);
+        state.noteMode = false;
+        const btn = document.getElementById("btnAddNote");
+        if (btn) btn.classList.remove("btn-active");
+        canvas.style.cursor = "crosshair";
+        return;
+      }
+
+      // 6. Otherwise start panning
+      state.interaction.isPanning = true;
+      state.interaction.panStartX = mouseX;
+      state.interaction.panStartY = mouseY;
+      state.interaction.panStartOffset = state.timebase.offset;
+      state.interaction.hasPanned = false;
+    }
+
+    function onCanvasMouseMove(e) {
+      const rect = canvas.getBoundingClientRect();
+      const mouseX = e.clientX - rect.left;
+      const mouseY = e.clientY - rect.top;
+      const w = rect.width;
+      const h = rect.height;
+
+      // Note dragging
+      if (state.interaction.draggingNote) {
+        const dn = state.interaction.draggingNote;
+        const dx = mouseX - dn.startX;
+        const dy = mouseY - dn.startY;
+        if (Math.abs(dx) > 3 || Math.abs(dy) > 3) {
+          dn.moved = true;
+          dn.note.relX = dn.initialRelX + dx;
+          dn.note.relY = dn.initialRelY + dy;
+          redraw();
+        }
+        return;
+      }
+
+      if (!state.cursors.dragging && !state.interaction.isPanning) {
+        let cursorStyle = state.noteMode ? "cell" : "crosshair";
+
+        // Check hover over notes
+        for (let i = state.notes.length - 1; i >= 0; i--) {
+          const n = state.notes[i];
+          if (n._closeRect && mouseX >= n._closeRect.x && mouseX <= n._closeRect.x + n._closeRect.w && mouseY >= n._closeRect.y && mouseY <= n._closeRect.y + n._closeRect.h) {
+            cursorStyle = "pointer";
+            break;
+          } else if (n._bodyRect && mouseX >= n._bodyRect.x && mouseX <= n._bodyRect.x + n._bodyRect.w && mouseY >= n._bodyRect.y && mouseY <= n._bodyRect.y + n._bodyRect.h) {
+            cursorStyle = "move";
+            break;
+          }
+        }
+
+        const showX = (state.cursors.mode === "X" || state.cursors.mode === "XY");
+        const showY = (state.cursors.mode === "Y" || state.cursors.mode === "XY");
+
+        let nearX = false;
+        let nearY = false;
+
+        if (showX) {
+          const tb = state.timebase;
+          const totalSpan = tb.scale * tb.divisions;
+          const tStart = tb.offset - totalSpan / 2;
+          const x1Pix = (state.cursors.x1 - tStart) * (w / totalSpan);
+          const x2Pix = (state.cursors.x2 - tStart) * (w / totalSpan);
+          if (Math.abs(mouseX - x1Pix) < 16 || Math.abs(mouseX - x2Pix) < 16) {
+            nearX = true;
+          }
+        }
+        if (showY) {
+          const midY = h / 2;
+          const ch = state.channels[state.cursors.targetChannel - 1];
+          const pixelsPerVolt = (h / state.vDivisions) / ch.vScale;
+          const y1Pix = midY - (state.cursors.y1 + ch.vOffset) * pixelsPerVolt;
+          const y2Pix = midY - (state.cursors.y2 + ch.vOffset) * pixelsPerVolt;
+          if (Math.abs(mouseY - y1Pix) < 16 || Math.abs(mouseY - y2Pix) < 16) {
+            nearY = true;
+          }
+        }
+
+        if (nearX && nearY) cursorStyle = "move";
+        else if (nearX) cursorStyle = "ew-resize";
+        else if (nearY) cursorStyle = "ns-resize";
+
+        canvas.style.cursor = cursorStyle;
+      }
+
+      if (state.cursors.dragging) {
+        if (state.cursors.dragging === "x1" || state.cursors.dragging === "x2") {
+          const tb = state.timebase;
+          const totalSpan = tb.scale * tb.divisions;
+          const tStart = tb.offset - totalSpan / 2;
+          if (state.cursors.dragging === "x1") state.cursors.x1 = tStart + (mouseX / w) * totalSpan;
+          else if (state.cursors.dragging === "x2") state.cursors.x2 = tStart + (mouseX / w) * totalSpan;
+          redraw();
+          return;
+        } else if (state.cursors.dragging === "y1" || state.cursors.dragging === "y2") {
+          const ch = state.channels[state.cursors.targetChannel - 1];
+          const midY = h / 2;
+          const pixelsPerVolt = (h / state.vDivisions) / ch.vScale;
+          const v = (midY - mouseY) / pixelsPerVolt - ch.vOffset;
+
+          if (state.cursors.dragging === "y1") state.cursors.y1 = v;
+          else if (state.cursors.dragging === "y2") state.cursors.y2 = v;
+          redraw();
+          return;
+        }
+      }
+
+      if (state.interaction.isPanning) {
+        const deltaPixels = mouseX - state.interaction.panStartX;
+        if (Math.abs(deltaPixels) > 3) {
+          state.interaction.hasPanned = true;
+        }
+        const totalSpan = state.timebase.scale * state.timebase.divisions;
+        state.timebase.offset = state.interaction.panStartOffset - (deltaPixels / w) * totalSpan;
+        document.getElementById("numTimeOffset").value = formatTime(state.timebase.offset);
+        redraw();
+      }
+    }
+
+    function onCanvasMouseUp(e) {
+      if (state.interaction.draggingNote) {
+        const dn = state.interaction.draggingNote;
+        if (!dn.moved) {
+          openNoteModalForEdit(dn.note);
+        }
+        state.interaction.draggingNote = null;
+        return;
+      }
+
+      if (state.cursors.dragging) {
+        state.cursors.dragging = null;
+        return;
+      }
+
+      if (state.interaction.isPanning) {
+        const rect = canvas.getBoundingClientRect();
+        const mouseX = e.clientX - rect.left;
+        const mouseY = e.clientY - rect.top;
+        const movedX = Math.abs(mouseX - state.interaction.panStartX);
+        const movedY = Math.abs(mouseY - state.interaction.panStartY);
+        const wasClick = !state.interaction.hasPanned && movedX < 5 && movedY < 5;
+        state.interaction.isPanning = false;
+
+        // If user clicked on empty oscillogram area, open note modal
+        if (wasClick) {
+          openNoteModalAtPos(mouseX, mouseY);
+        }
+      }
+    }
+
+    function onCanvasWheel(e) {
+      e.preventDefault();
+      const factor = e.deltaY < 0 ? 0.8 : 1.25;
+      const newScale = state.timebase.scale * factor;
+      if (newScale >= 1e-7 && newScale <= 0.05) {
+        state.timebase.scale = newScale;
+        document.getElementById("lblTimeScale").textContent = `${formatTime(newScale)}/div`;
+        document.getElementById("osdTB").textContent = `TB: ${formatTime(newScale)}`;
+        redraw();
+      }
+    }
+
+    /* ==========================================================================
+       NOTE MODAL ACTIONS
+       ========================================================================== */
+    function toggleAddNoteMode() {
+      state.noteMode = !state.noteMode;
+      const btn = document.getElementById("btnAddNote");
+      if (state.noteMode) {
+        btn.classList.add("btn-active");
+        canvas.style.cursor = "cell";
+      } else {
+        btn.classList.remove("btn-active");
+        canvas.style.cursor = "crosshair";
+      }
+    }
+
+    function selectNoteColor(color, el) {
+      state.selectedNoteColor = color;
+      const pills = document.querySelectorAll("#noteColorPicker .color-pill");
+      pills.forEach(p => {
+        if (p.style.backgroundColor === color || rgbToHex(p.style.backgroundColor) === color.toLowerCase()) {
+          p.classList.add("active");
+        } else {
+          p.classList.remove("active");
+        }
+      });
+      if (el) {
+        pills.forEach(p => p.classList.remove("active"));
+        el.classList.add("active");
+      }
+    }
+
+    function rgbToHex(rgb) {
+      if (!rgb || !rgb.startsWith("rgb")) return rgb;
+      const parts = rgb.match(/\d+/g);
+      if (!parts || parts.length < 3) return rgb;
+      return "#" + parts.slice(0, 3).map(x => parseInt(x).toString(16).padStart(2, "0")).join("");
+    }
+
+    function openNoteModalAtPos(mouseX, mouseY) {
+      const rect = canvas.getBoundingClientRect();
+      const w = rect.width;
+      const h = rect.height;
+
+      const tb = state.timebase;
+      const totalSpan = tb.scale * tb.divisions;
+      const tStart = tb.offset - totalSpan / 2;
+      const t = tStart + (mouseX / w) * totalSpan;
+
+      const targetChId = state.cursors.targetChannel || 1;
+      const ch = state.channels[targetChId - 1] || state.channels[0];
+      const midY = h / 2;
+      const pixelsPerVolt = (h / state.vDivisions) / ch.vScale;
+      const v = (midY - mouseY) / pixelsPerVolt - ch.vOffset;
+
+      state.activeNoteEditId = null;
+      state.pendingNotePos = { time: t, voltage: v, targetChannel: targetChId };
+
+      document.getElementById("noteModalTitle").textContent = "Add Oscilloscope Note";
+      const chLabel = getChannelDisplayName(ch);
+      document.getElementById("notePositionInfo").textContent = `Anchor: t = ${formatTime(t)}, V = ${formatVoltage(v)} (${chLabel})`;
+      const textInput = document.getElementById("noteTextInput");
+      textInput.value = "";
+      document.getElementById("btnDeleteNote").classList.add("hidden");
+
+      selectNoteColor(ch.color || "#fbbf24");
+
+      const modal = document.getElementById("noteModal");
+      modal.classList.remove("hidden");
+      setTimeout(() => textInput.focus(), 60);
+    }
+
+    function openNoteModalForEdit(note) {
+      state.activeNoteEditId = note.id;
+      state.pendingNotePos = null;
+
+      document.getElementById("noteModalTitle").textContent = "Edit Note";
+      const ch = state.channels[(note.targetChannel || 1) - 1] || state.channels[0];
+      const chLabel = getChannelDisplayName(ch);
+      document.getElementById("notePositionInfo").textContent = `Anchor: t = ${formatTime(note.time)}, V = ${formatVoltage(note.voltage)} (${chLabel})`;
+      const textInput = document.getElementById("noteTextInput");
+      textInput.value = note.text || "";
+      document.getElementById("btnDeleteNote").classList.remove("hidden");
+
+      selectNoteColor(note.color || "#fbbf24");
+
+      const modal = document.getElementById("noteModal");
+      modal.classList.remove("hidden");
+      setTimeout(() => textInput.focus(), 60);
+    }
+
+    function saveNoteFromModal() {
+      const text = document.getElementById("noteTextInput").value.trim();
+      if (!text) {
+        closeNoteModal();
+        return;
+      }
+
+      if (state.activeNoteEditId) {
+        const note = state.notes.find(n => n.id === state.activeNoteEditId);
+        if (note) {
+          note.text = text;
+          note.color = state.selectedNoteColor || "#fbbf24";
+        }
+      } else if (state.pendingNotePos) {
+        const newNote = {
+          id: "note_" + Date.now() + "_" + Math.random().toString(36).substr(2, 4),
+          time: state.pendingNotePos.time,
+          voltage: state.pendingNotePos.voltage,
+          targetChannel: state.pendingNotePos.targetChannel,
+          text: text,
+          color: state.selectedNoteColor || "#fbbf24",
+          relX: 20,
+          relY: -40
+        };
+        state.notes.push(newNote);
+      }
+
+      closeNoteModal();
+      redraw();
+    }
+
+    function deleteActiveNote() {
+      if (state.activeNoteEditId) {
+        state.notes = state.notes.filter(n => n.id !== state.activeNoteEditId);
+        closeNoteModal();
+        redraw();
+      }
+    }
+
+    function closeNoteModal() {
+      document.getElementById("noteModal").classList.add("hidden");
+      state.activeNoteEditId = null;
+      state.pendingNotePos = null;
+    }
+
+    function onNoteModalOverlayClick(e) {
+      if (e.target && e.target.id === "noteModal") {
+        closeNoteModal();
+      }
+    }
+
+    /* ==========================================================================
+       EXPORT FUNCTIONS
+       ========================================================================== */
+    function exportCanvasImage() {
+      const link = document.createElement("a");
+      link.download = `oscilloscope_capture_${Date.now()}.png`;
+      link.href = canvas.toDataURL("image/png");
+      link.click();
+    }
+
+    function exportMeasurementsCSV() {
+      let csv = "Channel,Alias,File,Vp+ (V),Vp- (V),Vpp (V),Vmean (V),Vrms (V)\n";
+      state.channels.forEach(ch => {
+        if (ch.enabled && ch.metrics) {
+          const m = ch.metrics;
+          csv += `"${ch.name}","${ch.alias || ""}","${ch.fileName}",${m.max.toFixed(4)},${m.min.toFixed(4)},${m.vpp.toFixed(4)},${m.mean.toFixed(4)},${m.rms.toFixed(4)}\n`;
+        }
+      });
+      const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+      const link = document.createElement("a");
+      link.href = URL.createObjectURL(blob);
+      link.download = `measurements_${Date.now()}.csv`;
+      link.click();
+    }
+  </script>
+</body>
+</html>
