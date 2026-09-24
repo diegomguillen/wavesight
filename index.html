@@ -745,7 +745,7 @@
       transform: translateY(0);
     }
 
-    /* RTC1002 INSTRUMENT CONNECTION BAR */
+    /* OSCILLOSCOPE INSTRUMENT CONNECTION BAR */
     .scope-ip-group {
       display: flex;
       align-items: center;
@@ -1009,7 +1009,7 @@
         </div>
         <div class="live-screen-body">
           <div class="live-img-container" id="liveImgContainer">
-            <img id="rtcLiveScreenImg" alt="Screen Capture" style="width:100%; height:auto; display:block; border-radius:4px;">
+            <img id="scopeLiveScreenImg" alt="Screen Capture" style="width:100%; height:auto; display:block; border-radius:4px;">
             <div id="liveScreenPlaceholder" class="live-screen-placeholder hidden">
               <svg width="32" height="32" fill="none" stroke="#ef4444" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
               <div style="color:#ef4444; font-weight:700; font-size:13px; margin-top:6px;">Cannot Reach Oscilloscope</div>
@@ -1055,6 +1055,20 @@
             <div style="font-size:11.5px; color:#94a3b8; line-height:1.4;">
               Conexión directa con tu osciloscopio en la red local. Sigue estos 2 sencillos pasos:
             </div>
+
+            <!-- AVISO DE SEGURIDAD HTTPS (GITHUB PAGES) -->
+            <div id="httpsMixedContentNotice" style="display:none; background:rgba(245, 158, 11, 0.1); border:1px solid rgba(245, 158, 11, 0.4); border-radius:6px; padding:10px 12px; font-size:11px; color:#fef3c7;">
+              <div style="font-weight:700; color:#fbbf24; display:flex; align-items:center; gap:6px; margin-bottom:5px;">
+                <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
+                <span>Aviso para GitHub Pages (HTTPS &rarr; IP local HTTP):</span>
+              </div>
+              <div style="line-height:1.45; color:#fde68a;">
+                Chrome bloquea por defecto descargas hacia IPs locales por seguridad (Mixed Content).
+                <br>
+                <b>Solución en 10 segundos:</b> Haz clic en el icono 🔒 a la izquierda de la URL &rarr; <b>Configuración del sitio</b> &rarr; <b>Contenido no seguro: Permitir</b> &rarr; Recargar la página.
+              </div>
+            </div>
+
             <div class="control-row">
               <div class="control-group">
                 <label class="control-label">Canales a importar</label>
@@ -1082,6 +1096,10 @@
               <button class="btn btn-active" onclick="executeFetchScopeData()" id="btnExecuteFetchScope" style="width:100%; justify-content:center; font-weight:700; padding:7px 12px; font-size:12px;">
                 📥 1. Iniciar Descarga de Curvas
               </button>
+              <a id="btnOpenScopeDirectWeb" href="#" target="_blank" class="btn" style="text-decoration:none; display:flex; align-items:center; justify-content:center; gap:6px; font-size:11px; padding:6px 10px; background:#1e293b; color:#38bdf8; border:1px solid #0284c7; border-radius:5px; margin-top:8px;" title="Abrir panel web nativo del osciloscopio en otra pestaña">
+                <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path></svg>
+                <span>O abrir panel web del osciloscopio en otra pestaña</span>
+              </a>
             </div>
 
             <!-- PASO 2: CARGA EN PANTALLA -->
@@ -1714,7 +1732,7 @@
         } else {
           const ch = state.channels[targetId - 1];
           ch.data = { time: parsed.time, voltage: parsed.channels[0] };
-          ch.fileName = `RTC1002 CH${targetId} (${file.name})`;
+          ch.fileName = `CH${targetId} (${file.name})`;
           ch.enabled = true;
           ch.filteredVoltage = ch.filter > 0 ? computeFilteredVoltage(ch.data.voltage, ch.filter) : null;
           updateChannelUI(targetId);
@@ -3775,7 +3793,7 @@
     }
 
     /* ==========================================================================
-       ROHDE & SCHWARZ RTC1002 DIRECT INTEGRATION
+       OSCILLOSCOPE DIRECT INTEGRATION
        ========================================================================== */
     let liveScreenInterval = null;
 
@@ -3790,10 +3808,10 @@
     }
 
     function initScopeConnectionUI() {
-      const savedRaw = localStorage.getItem("rtc1002_ip") || "";
+      const savedRaw = localStorage.getItem("scope_ip") || localStorage.getItem("rtc1002_ip") || "";
       const savedIp = cleanScopeIp(savedRaw);
-      if (savedIp !== savedRaw) {
-        localStorage.setItem("rtc1002_ip", savedIp);
+      if (savedIp) {
+        localStorage.setItem("scope_ip", savedIp);
       }
       const ipInput = document.getElementById("scopeIpInput");
       if (ipInput) ipInput.value = savedIp;
@@ -3807,7 +3825,7 @@
     function getScopeIp() {
       const input = document.getElementById("scopeIpInput");
       const raw = input ? input.value : "";
-      return cleanScopeIp(raw || localStorage.getItem("rtc1002_ip") || "");
+      return cleanScopeIp(raw || localStorage.getItem("scope_ip") || localStorage.getItem("rtc1002_ip") || "");
     }
 
     function saveScopeIp(val) {
@@ -3816,7 +3834,7 @@
       if (input && input.value !== clean) {
         input.value = clean;
       }
-      localStorage.setItem("rtc1002_ip", clean);
+      localStorage.setItem("scope_ip", clean);
       updateScopeIpIndicator(clean);
       const badge = document.getElementById("liveScreenIpBadge");
       if (badge) badge.textContent = clean || "No IP";
@@ -3858,7 +3876,7 @@
 
     function refreshLiveScreen() {
       const ip = getScopeIp();
-      const img = document.getElementById("rtcLiveScreenImg");
+      const img = document.getElementById("scopeLiveScreenImg");
       const placeholder = document.getElementById("liveScreenPlaceholder");
       if (!img) return;
 
@@ -3925,6 +3943,14 @@
         alert("Please enter a valid oscilloscope IP address (e.g. 192.168.1.50) in the top toolbar first.");
         return;
       }
+      const directLink = document.getElementById("btnOpenScopeDirectWeb");
+      if (directLink) {
+        directLink.href = `http://${ip}/`;
+      }
+      const notice = document.getElementById("httpsMixedContentNotice");
+      if (notice) {
+        notice.style.display = (window.location.protocol === "https:") ? "block" : "none";
+      }
       document.getElementById("fetchScopeModal").classList.remove("hidden");
     }
 
@@ -3970,7 +3996,7 @@
         <input type="hidden" name="button" value="Save">
       `;
       form.submit();
-      showToast(`Downloading CH${Number(sourceVal) + 1} CSV directly from RTC1002...`);
+      showToast(`Downloading CH${Number(sourceVal) + 1} CSV directly from oscilloscope...`);
     }
 
     async function fetchChannelFromScope(sourceVal, pointsVal = "0") {
@@ -3980,25 +4006,29 @@
       let csvText = null;
 
       // 1. Try local WaveSight Proxy (/api/scope_fetch) which eliminates browser CORS restrictions
-      try {
-        const proxyParams = new URLSearchParams();
-        proxyParams.append("ip", ip);
-        proxyParams.append("source", sourceVal.toString());
-        proxyParams.append("points", pointsVal.toString());
-        const proxyResp = await fetch("/api/scope_fetch", {
-          method: "POST",
-          headers: { "Content-Type": "application/x-www-form-urlencoded" },
-          body: proxyParams.toString()
-        });
-        if (proxyResp.ok) {
-          csvText = await proxyResp.text();
+      // Only invoke on localhost / 127.0.0.1 to avoid 405 Method Not Allowed on static hosts like GitHub Pages
+      const isLocalHost = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1";
+      if (isLocalHost) {
+        try {
+          const proxyParams = new URLSearchParams();
+          proxyParams.append("ip", ip);
+          proxyParams.append("source", sourceVal.toString());
+          proxyParams.append("points", pointsVal.toString());
+          const proxyResp = await fetch("/api/scope_fetch", {
+            method: "POST",
+            headers: { "Content-Type": "application/x-www-form-urlencoded" },
+            body: proxyParams.toString()
+          });
+          if (proxyResp.ok) {
+            csvText = await proxyResp.text();
+          }
+        } catch (proxyErr) {
+          console.debug("Local proxy not active, trying direct instrument connection:", proxyErr);
         }
-      } catch (proxyErr) {
-        console.debug("Local proxy not active, trying direct instrument connection:", proxyErr);
       }
 
-      // 2. If proxy not available, try direct browser fetch to oscilloscope
-      if (!csvText) {
+      // 2. If proxy not available and not on HTTPS, try direct browser fetch to oscilloscope
+      if (!csvText && window.location.protocol !== "https:") {
         const url = `http://${ip}/chaninfo.htm`;
         const formData = new URLSearchParams();
         formData.append("lang", "en");
@@ -4038,21 +4068,21 @@
           updateChannelUI(chId);
           calculateChannelMetrics(ch);
           redraw();
-          showToast(`CH${chId} waveform displayed from RTC1002!`);
+          showToast(`CH${chId} waveform displayed from oscilloscope!`);
           return true;
         }
       }
 
-      // 4. Fallback if both failed (e.g. running plain python -m http.server without proxy)
+      // 4. Fallback if both failed (trigger form download)
       triggerDirectScopeFormDownload(ip, sourceVal, pointsVal);
-      showToast(`CH${Number(sourceVal) + 1} CSV downloaded. Usa 'python server.py 8080' para carga directa automática sin descargar archivos.`, 6000);
+      showToast(`Descargando CH${Number(sourceVal) + 1}... Arrástralo al Paso 2 si no se carga automáticamente.`, 6000);
       return false;
     }
 
     async function executeFetchScopeData() {
       const ip = getScopeIp();
       if (!ip) {
-        alert("Please enter the RTC1002 IP address first.");
+        alert("Please enter the oscilloscope IP address first.");
         return;
       }
       const source = document.getElementById("selScopeFetchSource").value;
