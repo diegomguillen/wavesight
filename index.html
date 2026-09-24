@@ -51,13 +51,16 @@
     header {
       background: linear-gradient(180deg, #151e2e 0%, #0d1420 100%);
       border-bottom: 1px solid var(--border-color);
-      padding: 7px 16px;
+      padding: 0 16px;
+      height: 48px;
       display: flex;
       align-items: center;
       justify-content: space-between;
       gap: 12px;
       flex-shrink: 0;
       z-index: 10;
+      white-space: nowrap;
+      overflow-x: auto;
     }
 
     .brand {
@@ -102,7 +105,15 @@
       display: flex;
       align-items: center;
       gap: 8px;
-      flex-wrap: wrap;
+      flex-wrap: nowrap;
+    }
+
+    .nav-divider {
+      width: 1px;
+      height: 20px;
+      background: var(--border-color);
+      margin: 0 4px;
+      flex-shrink: 0;
     }
 
     .btn {
@@ -733,63 +744,212 @@
       opacity: 1;
       transform: translateY(0);
     }
+
+    /* RTC1002 INSTRUMENT CONNECTION BAR */
+    .scope-ip-group {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      background: #090e18;
+      border: 1px solid #1e293b;
+      padding: 3px 8px;
+      border-radius: 6px;
+    }
+
+    .scope-status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #64748b;
+      display: inline-block;
+      transition: all 0.2s ease;
+    }
+
+    .scope-status-dot.connected {
+      background: #00e676;
+      box-shadow: 0 0 8px rgba(0, 230, 118, 0.6);
+    }
+
+    .scope-ip-input {
+      width: 108px;
+      font-family: "SF Mono", Consolas, monospace;
+      font-size: 11px;
+      padding: 3px 6px;
+      text-align: center;
+      background: #111a29;
+      border: 1px solid #29384d;
+      color: #38bdf8;
+      border-radius: 4px;
+    }
+
+    .btn-scope {
+      background: #152238;
+      border-color: #2e476d;
+      color: #38bdf8;
+    }
+
+    .btn-scope:hover {
+      background: #1f3454;
+      border-color: #38bdf8;
+      color: #fff;
+    }
+
+    /* LIVE SCREEN FLOATING WINDOW */
+    .live-screen-window {
+      position: fixed;
+      top: 55px;
+      right: 20px;
+      width: 530px;
+      background: #0b111c;
+      border: 1px solid #38bdf8;
+      box-shadow: 0 16px 40px rgba(0, 0, 0, 0.8), 0 0 20px rgba(56, 189, 248, 0.28);
+      border-radius: 8px;
+      overflow: hidden;
+      z-index: 1000;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .live-screen-header {
+      background: linear-gradient(180deg, #19273c 0%, #101a2b 100%);
+      padding: 7px 12px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid #23354e;
+      cursor: move;
+    }
+
+    .live-screen-body {
+      padding: 8px;
+      background: #04070d;
+      min-height: 290px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .live-img-container {
+      width: 100%;
+      position: relative;
+    }
+
+    .live-screen-placeholder {
+      padding: 32px 16px;
+      text-align: center;
+      background: rgba(15, 23, 42, 0.85);
+      border: 1px dashed #ef444466;
+      border-radius: 6px;
+    }
+
+    .live-screen-toolbar {
+      padding: 6px 10px;
+      background: #0f1624;
+      border-top: 1px solid #1e293b;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    /* ASSISTED SCOPE FETCH DROPZONE */
+    .fetch-dropzone {
+      margin-top: 10px;
+      padding: 16px 14px;
+      background: linear-gradient(180deg, rgba(14, 165, 233, 0.08) 0%, rgba(15, 23, 42, 0.6) 100%);
+      border: 2px dashed #0284c7;
+      border-radius: 8px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    .fetch-dropzone:hover {
+      background: rgba(14, 165, 233, 0.16);
+      border-color: #38bdf8;
+      box-shadow: 0 0 16px rgba(56, 189, 248, 0.25);
+    }
+    .fetch-dropzone.drag-active {
+      background: rgba(56, 189, 248, 0.25);
+      border-color: #38bdf8;
+      transform: scale(1.02);
+    }
   </style>
 </head>
 <body>
 
   <!-- TOP HEADER -->
   <header>
-    <div class="brand">
-      <div class="brand-logo">~</div>
-      <div class="brand-title">
-        WaveSight
-        <span class="brand-badge">4-CH &bull; High Resolution</span>
+    <!-- LEFT: BRAND & SCOPE CONNECTION -->
+    <div style="display:flex; align-items:center; gap:10px;">
+      <div class="brand">
+        <div class="brand-logo">~</div>
+        <div class="brand-title">WaveSight</div>
+      </div>
+
+      <div class="nav-divider"></div>
+
+      <!-- INSTRUMENT CONNECTION -->
+      <div class="scope-ip-group">
+        <span class="scope-status-dot" id="scopeStatusDot" title="Oscilloscope connection status"></span>
+        <label for="scopeIpInput" style="font-size:11px; font-weight:700; color:#94a3b8;">IP:</label>
+        <input type="text" id="scopeIpInput" class="input scope-ip-input" placeholder="192.168.1.50" onchange="saveScopeIp(this.value)" onblur="saveScopeIp(this.value)" oninput="updateScopeIpIndicator(this.value)" title="Oscilloscope IP Address">
+        <button class="btn btn-scope" id="btnOpenLiveScreen" onclick="toggleLiveScreenModal()" title="Live Screen capture">
+          <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect><line x1="8" y1="21" x2="16" y2="21"></line><line x1="12" y1="17" x2="12" y2="21"></line></svg>
+          Live Screen
+        </button>
+        <button class="btn btn-scope" id="btnFetchScopeData" onclick="openFetchScopeModal()" title="Download & import waveforms">
+          <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+          Fetch Data
+        </button>
       </div>
     </div>
 
+    <!-- RIGHT: CONTROLS, CURSORS & ACTIONS -->
     <div class="top-controls">
-      <button class="btn btn-warning" id="btnLoadRealRamp" title="Load reference acquisition: CH1 ramp (1.78V) and CH2 curve (3.38V)">
-        <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
-        Demo Waveform (1.8V / 3.4V)
-      </button>
-
-      <button class="btn" id="btnAutoset" title="Automatically scale and center active channels">
+      <button class="btn" id="btnAutoset" title="Scale and center active channels">
         <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
         Autoset
       </button>
 
       <div class="param-pill-group">
-        <div class="param-pill active" id="cursorModeOff" onclick="setCursorMode('off')">No Cursors</div>
-        <div class="param-pill" id="cursorModeX" onclick="setCursorMode('X')">X Cursors (Time)</div>
-        <div class="param-pill" id="cursorModeY" onclick="setCursorMode('Y')">Y Cursors (Voltage)</div>
-        <div class="param-pill" id="cursorModeXY" onclick="setCursorMode('XY')">Both (X &amp; Y)</div>
+        <div class="param-pill active" id="cursorModeOff" onclick="setCursorMode('off')">Off</div>
+        <div class="param-pill" id="cursorModeX" onclick="setCursorMode('X')">X</div>
+        <div class="param-pill" id="cursorModeY" onclick="setCursorMode('Y')">Y</div>
+        <div class="param-pill" id="cursorModeXY" onclick="setCursorMode('XY')">XY</div>
       </div>
       <select id="selCursorYTarget" class="select hidden" style="width:auto; padding:3px 8px; font-size:11px; background:#1b283d; border-color:#38bdf8;" onchange="onCursorTargetChannelChange(this.value)">
-        <option value="1">Measure CH1 (Yellow)</option>
-        <option value="2">Measure CH2 (Cyan)</option>
-        <option value="3">Measure CH3 (Magenta)</option>
-        <option value="4">Measure CH4 (Green)</option>
+        <option value="1">CH1 (Yellow)</option>
+        <option value="2">CH2 (Cyan)</option>
+        <option value="3">CH3 (Magenta)</option>
+        <option value="4">CH4 (Green)</option>
       </select>
 
-      <button class="btn" id="btnAddNote" onclick="toggleAddNoteMode()" title="Click on the oscillogram to add a note or annotation">
+      <button class="btn" id="btnAddNote" onclick="toggleAddNoteMode()" title="Add note on oscillogram">
         <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
-        Add Note
+        Note
       </button>
 
-      <button class="btn" id="btnExportImage" title="Save PNG screenshot of the display">
+      <div class="nav-divider"></div>
+
+      <button class="btn" id="btnExportImage" title="Save PNG screenshot of display">
         <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
-        PNG Screenshot
+        PNG
       </button>
 
-      <button class="btn" id="btnImportSession" title="Import complete workspace session (.json)">
+      <button class="btn" id="btnImportSession" title="Import workspace session (.json)">
         <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path></svg>
-        Import Session
+        Import
       </button>
       <input type="file" id="sessionFileInput" accept=".json,application/json" style="display:none">
 
-      <button class="btn" id="btnExportMeas" title="Export complete measurements and workspace session (.json)">
+      <button class="btn" id="btnExportMeas" title="Export session & measurements (.json)">
         <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
-        Export Measurements
+        Export
+      </button>
+
+      <button class="btn" id="btnLoadRealRamp" style="padding:4px 8px; font-size:11px; color:#cbd5e1; opacity:0.85;" title="Load reference demo waveform">
+        Demo
       </button>
     </div>
   </header>
@@ -831,6 +991,117 @@
               <button class="btn" onclick="closeNoteModal()">Cancel</button>
               <button class="btn btn-active" onclick="saveNoteFromModal()">Save Note</button>
             </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- LIVE SCREEN FLOATING WINDOW -->
+      <div id="liveScreenModal" class="live-screen-window hidden">
+        <div class="live-screen-header" id="liveScreenDragHeader">
+          <div style="display:flex; align-items:center; gap:8px;">
+            <div class="brand-logo" style="width:18px; height:18px; font-size:10px; border-radius:3px;">~</div>
+            <span style="font-weight:700; font-size:12px; color:#e2e8f0;">Live Screen</span>
+          </div>
+          <div style="display:flex; align-items:center; gap:6px;">
+            <span id="liveScreenIpBadge" class="brand-badge" style="font-size:9.5px; padding:1px 5px; font-family:monospace;">192.168.1.50</span>
+            <button class="modal-close-btn" onclick="toggleLiveScreenModal()">&times;</button>
+          </div>
+        </div>
+        <div class="live-screen-body">
+          <div class="live-img-container" id="liveImgContainer">
+            <img id="rtcLiveScreenImg" alt="Screen Capture" style="width:100%; height:auto; display:block; border-radius:4px;">
+            <div id="liveScreenPlaceholder" class="live-screen-placeholder hidden">
+              <svg width="32" height="32" fill="none" stroke="#ef4444" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+              <div style="color:#ef4444; font-weight:700; font-size:13px; margin-top:6px;">Cannot Reach Oscilloscope</div>
+              <div style="color:#94a3b8; font-size:11px; margin-top:2px;" id="livePlaceholderText">Check IP address and ensure oscilloscope is powered on and connected to the LAN.</div>
+            </div>
+          </div>
+        </div>
+        <div class="live-screen-toolbar">
+          <div style="display:flex; align-items:center; gap:5px;">
+            <button class="btn" onclick="refreshLiveScreen()" title="Take snapshot now">
+              <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
+              Snapshot
+            </button>
+            <label style="font-size:10.5px; color:#94a3b8;">Auto:</label>
+            <select id="selLiveAutoRefresh" class="select" style="width:auto; padding:2px 5px; font-size:10.5px;" onchange="onLiveAutoRefreshChange(this.value)">
+              <option value="0" selected>Off</option>
+              <option value="1000">1 s</option>
+              <option value="2000">2 s</option>
+              <option value="5000">5 s</option>
+            </select>
+          </div>
+
+          <div style="display:flex; align-items:center; gap:4px; margin-left:auto;">
+            <button class="btn" style="background:#14532d; border-color:#22c55e; color:#bbf7d0; font-size:10px; padding:3px 7px;" onclick="sendScopeCommand('Run')" title="Start continuous acquisition">Run</button>
+            <button class="btn" style="background:#7f1d1d; border-color:#ef4444; color:#fecaca; font-size:10px; padding:3px 7px;" onclick="sendScopeCommand('Stop')" title="Stop acquisition">Stop</button>
+            <button class="btn" style="background:#78350f; border-color:#f59e0b; color:#fef3c7; font-size:10px; padding:3px 7px;" onclick="sendScopeCommand('Single')" title="Single shot acquisition">Single</button>
+            <button class="btn" style="background:#0e445b; border-color:#06b6d4; color:#cffafe; font-size:10px; padding:3px 7px;" onclick="sendScopeCommand('Autoset')" title="Hardware autoset">Autoset</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- FETCH SCOPE DATA MODAL -->
+      <div id="fetchScopeModal" class="note-modal-overlay hidden" onclick="onFetchScopeOverlayClick(event)">
+        <div class="note-modal-card" style="width:480px;" onclick="event.stopPropagation()">
+          <div class="note-modal-header">
+            <div style="display:flex; align-items:center; gap:8px;">
+              <svg width="15" height="15" fill="none" stroke="#38bdf8" stroke-width="2" viewBox="0 0 24 24"><path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+              <span style="font-weight:700; font-size:13px;">Importar Curvas de Osciloscopio</span>
+            </div>
+            <button class="modal-close-btn" onclick="closeFetchScopeModal()">&times;</button>
+          </div>
+          <div class="note-modal-body" style="gap:12px;">
+            <div style="font-size:11.5px; color:#94a3b8; line-height:1.4;">
+              Conexión directa con tu osciloscopio en la red local. Sigue estos 2 sencillos pasos:
+            </div>
+            <div class="control-row">
+              <div class="control-group">
+                <label class="control-label">Canales a importar</label>
+                <select class="select" id="selScopeFetchSource">
+                  <option value="both" selected>Ambos CH1 y CH2</option>
+                  <option value="0">Canal 1 (CH1)</option>
+                  <option value="1">Canal 2 (CH2)</option>
+                </select>
+              </div>
+              <div class="control-group">
+                <label class="control-label">Resolución</label>
+                <select class="select" id="selScopeFetchPoints">
+                  <option value="0" selected>Datos en Pantalla (Rápido)</option>
+                  <option value="1">Memoria Completa (Buffer)</option>
+                </select>
+              </div>
+            </div>
+
+            <!-- PASO 1: DESCARGA DESDE EL OSCILOSCOPIO -->
+            <div style="background:#0b111c; border:1px solid #1e293b; border-radius:6px; padding:10px 12px;">
+              <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:8px;">
+                <span style="font-weight:700; color:#e2e8f0; font-size:12px;">Paso 1: Descarga</span>
+                <span style="font-size:10.5px; color:#38bdf8;" id="fetchDownloadStatus">Listo</span>
+              </div>
+              <button class="btn btn-active" onclick="executeFetchScopeData()" id="btnExecuteFetchScope" style="width:100%; justify-content:center; font-weight:700; padding:7px 12px; font-size:12px;">
+                📥 1. Iniciar Descarga de Curvas
+              </button>
+            </div>
+
+            <!-- PASO 2: CARGA EN PANTALLA -->
+            <input type="file" id="fetchedScopeFileInput" accept=".csv,.txt" multiple style="display:none" onchange="handleFetchedScopeFiles(this)">
+
+            <div id="fetchScopeAssistedDropzone" class="fetch-dropzone" onclick="document.getElementById('fetchedScopeFileInput').click()" title="Haz clic o arrastra los archivos aquí">
+              <div style="display:flex; align-items:center; justify-content:center; gap:8px;">
+                <svg width="20" height="20" fill="none" stroke="#38bdf8" stroke-width="2" viewBox="0 0 24 24"><path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path></svg>
+                <span style="font-weight:700; color:#38bdf8; font-size:13px;" id="dropzoneMainText">Paso 2: Cargar archivo(s) en pantalla</span>
+              </div>
+              <div style="color:#cbd5e1; font-size:11.5px; margin-top:6px;" id="dropzoneSubText">
+                Cuando termine la descarga, <b>arrástralo aquí desde tu barra de descargas</b> o haz clic para seleccionarlo.
+              </div>
+              <div style="color:#64748b; font-size:10px; margin-top:4px;">
+                Detección inteligente: CH1 y CH2 se mapean automáticamente según su cabecera interna.
+              </div>
+            </div>
+          </div>
+          <div class="note-modal-footer">
+            <button class="btn" onclick="closeFetchScopeModal()" style="margin-left:auto;">Cerrar</button>
           </div>
         </div>
       </div>
@@ -955,6 +1226,26 @@
 
   <!-- EMBEDDED JAVASCRIPT ENGINE -->
   <script>
+    // Automatically unregister legacy Service Workers from previous projects on this origin (e.g. localhost:8080)
+    if ("serviceWorker" in navigator) {
+      navigator.serviceWorker.getRegistrations().then(registrations => {
+        for (const reg of registrations) {
+          reg.unregister().then(unregistered => {
+            if (unregistered) console.info("[WaveSight] Cleaned up legacy Service Worker:", reg.scope);
+          });
+        }
+      }).catch(err => console.debug("[WaveSight] SW cleanup:", err));
+    }
+    if ("caches" in window) {
+      caches.keys().then(keys => {
+        keys.forEach(key => {
+          if (!key.startsWith("wavesight-")) {
+            caches.delete(key).catch(() => {});
+          }
+        });
+      }).catch(() => {});
+    }
+
     /* ==========================================================================
        GLOBAL STATE (DEFAULT OFFSET 0.0V AS REQUESTED)
        ========================================================================== */
@@ -1060,6 +1351,7 @@
        INITIALIZATION
        ========================================================================== */
     window.addEventListener("DOMContentLoaded", () => {
+      initScopeConnectionUI();
       buildChannelCardsUI();
       buildMeasGridUI();
       setupEventListeners();
@@ -1390,11 +1682,20 @@
 
         let targetId = forcedChId || 1;
         const lowerName = file.name.toLowerCase();
+        const headerStr = (parsed.headers || []).join(" ").toLowerCase();
+
         if (!forcedChId) {
-          if (lowerName.includes("ch2") || lowerName.includes("canal2")) targetId = 2;
-          else if (lowerName.includes("ch3")) targetId = 3;
-          else if (lowerName.includes("ch4")) targetId = 4;
-          else targetId = 1;
+          if (headerStr.includes("ch2") || headerStr.includes("canal2") || lowerName.includes("ch2") || lowerName.includes("canal2")) {
+            targetId = 2;
+          } else if (headerStr.includes("ch3") || lowerName.includes("ch3")) {
+            targetId = 3;
+          } else if (headerStr.includes("ch4") || lowerName.includes("ch4")) {
+            targetId = 4;
+          } else if (headerStr.includes("ch1") || lowerName.includes("ch1")) {
+            targetId = 1;
+          } else {
+            targetId = 1;
+          }
         }
 
         if (!forcedChId && parsed.channels[1]) {
@@ -1413,13 +1714,14 @@
         } else {
           const ch = state.channels[targetId - 1];
           ch.data = { time: parsed.time, voltage: parsed.channels[0] };
-          ch.fileName = file.name;
+          ch.fileName = `RTC1002 CH${targetId} (${file.name})`;
           ch.enabled = true;
           ch.filteredVoltage = ch.filter > 0 ? computeFilteredVoltage(ch.data.voltage, ch.filter) : null;
           updateChannelUI(targetId);
           calculateChannelMetrics(ch);
         }
         redraw();
+        showToast(`¡CH${targetId} cargado y mostrado en pantalla!`);
       };
       reader.readAsText(file);
     }
@@ -2580,6 +2882,21 @@
         }
       });
 
+      // Modal assisted dropzone drag & drop support
+      const modalDropzone = document.getElementById("fetchScopeAssistedDropzone");
+      if (modalDropzone) {
+        modalDropzone.addEventListener("dragover", (e) => { e.preventDefault(); modalDropzone.classList.add("drag-active"); });
+        modalDropzone.addEventListener("dragleave", (e) => { modalDropzone.classList.remove("drag-active"); });
+        modalDropzone.addEventListener("drop", (e) => {
+          e.preventDefault();
+          modalDropzone.classList.remove("drag-active");
+          if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+            loadMultipleScopeFiles(e.dataTransfer.files);
+            closeFetchScopeModal();
+          }
+        });
+      }
+
       document.getElementById("btnLoadRealRamp").addEventListener("click", loadDemoWaveformSignal);
       document.getElementById("btnAutoset").addEventListener("click", autoset);
       document.getElementById("btnExportImage").addEventListener("click", exportCanvasImage);
@@ -3455,6 +3772,389 @@
       window._toastTimeout = setTimeout(() => {
         toast.classList.remove("show");
       }, duration);
+    }
+
+    /* ==========================================================================
+       ROHDE & SCHWARZ RTC1002 DIRECT INTEGRATION
+       ========================================================================== */
+    let liveScreenInterval = null;
+
+    function cleanScopeIp(val) {
+      if (!val) return "";
+      let clean = String(val).trim();
+      // Remove any leading protocol http://, https://, http//, https//, //, etc.
+      clean = clean.replace(/^(https?:?\/{1,3}|\/{1,3})/gi, "");
+      // Remove any trailing path or slashes
+      clean = clean.split("/")[0].trim();
+      return clean;
+    }
+
+    function initScopeConnectionUI() {
+      const savedRaw = localStorage.getItem("rtc1002_ip") || "";
+      const savedIp = cleanScopeIp(savedRaw);
+      if (savedIp !== savedRaw) {
+        localStorage.setItem("rtc1002_ip", savedIp);
+      }
+      const ipInput = document.getElementById("scopeIpInput");
+      if (ipInput) ipInput.value = savedIp;
+      updateScopeIpIndicator(savedIp);
+
+      const win = document.getElementById("liveScreenModal");
+      const handle = document.getElementById("liveScreenDragHeader");
+      if (win && handle) makeElementDraggable(win, handle);
+    }
+
+    function getScopeIp() {
+      const input = document.getElementById("scopeIpInput");
+      const raw = input ? input.value : "";
+      return cleanScopeIp(raw || localStorage.getItem("rtc1002_ip") || "");
+    }
+
+    function saveScopeIp(val) {
+      const clean = cleanScopeIp(val);
+      const input = document.getElementById("scopeIpInput");
+      if (input && input.value !== clean) {
+        input.value = clean;
+      }
+      localStorage.setItem("rtc1002_ip", clean);
+      updateScopeIpIndicator(clean);
+      const badge = document.getElementById("liveScreenIpBadge");
+      if (badge) badge.textContent = clean || "No IP";
+      showToast(clean ? `Oscilloscope IP saved: ${clean}` : "Oscilloscope IP cleared");
+    }
+
+    function updateScopeIpIndicator(val) {
+      const dot = document.getElementById("scopeStatusDot");
+      if (!dot) return;
+      const clean = cleanScopeIp(val);
+      if (clean.length >= 7 && clean.includes(".")) {
+        dot.classList.add("connected");
+        dot.title = `Oscilloscope IP: ${clean}`;
+      } else {
+        dot.classList.remove("connected");
+        dot.title = "Oscilloscope IP not set";
+      }
+    }
+
+    function toggleLiveScreenModal() {
+      const modal = document.getElementById("liveScreenModal");
+      if (!modal) return;
+      if (modal.classList.contains("hidden")) {
+        modal.classList.remove("hidden");
+        const ip = getScopeIp();
+        const badge = document.getElementById("liveScreenIpBadge");
+        if (badge) badge.textContent = ip || "No IP";
+        refreshLiveScreen();
+        const selAuto = document.getElementById("selLiveAutoRefresh");
+        if (selAuto) onLiveAutoRefreshChange(selAuto.value);
+      } else {
+        modal.classList.add("hidden");
+        if (liveScreenInterval) {
+          clearInterval(liveScreenInterval);
+          liveScreenInterval = null;
+        }
+      }
+    }
+
+    function refreshLiveScreen() {
+      const ip = getScopeIp();
+      const img = document.getElementById("rtcLiveScreenImg");
+      const placeholder = document.getElementById("liveScreenPlaceholder");
+      if (!img) return;
+
+      if (!ip || ip.trim().length < 7 || !ip.includes(".")) {
+        img.style.display = "none";
+        if (placeholder) {
+          placeholder.classList.remove("hidden");
+          document.getElementById("livePlaceholderText").textContent = "Please enter a valid oscilloscope IP address (e.g. 192.168.1.50) in the top toolbar.";
+        }
+        return;
+      }
+
+      const testUrl = `http://${ip}/crt_print.png?format=2&mode=0&_t=${Date.now()}`;
+      const preloader = new Image();
+      preloader.onload = () => {
+        img.src = testUrl;
+        img.style.display = "block";
+        if (placeholder) placeholder.classList.add("hidden");
+      };
+      preloader.onerror = () => {
+        img.style.display = "none";
+        if (placeholder) {
+          placeholder.classList.remove("hidden");
+          document.getElementById("livePlaceholderText").textContent = `Cannot reach http://${ip}. Ensure oscilloscope is powered on and connected to the same network.`;
+        }
+      };
+      preloader.src = testUrl;
+    }
+
+    function onLiveAutoRefreshChange(val) {
+      const ms = parseInt(val, 10);
+      if (liveScreenInterval) {
+        clearInterval(liveScreenInterval);
+        liveScreenInterval = null;
+      }
+      if (ms > 0) {
+        liveScreenInterval = setInterval(() => {
+          const modal = document.getElementById("liveScreenModal");
+          if (modal && !modal.classList.contains("hidden")) {
+            const ip = getScopeIp();
+            if (ip && ip.trim().length >= 7 && ip.includes(".")) {
+              refreshLiveScreen();
+            }
+          }
+        }, ms);
+      }
+    }
+
+    function sendScopeCommand(cmd) {
+      const ip = getScopeIp();
+      if (!ip || ip.trim().length < 7 || !ip.includes(".")) {
+        alert("Please enter a valid oscilloscope IP address (e.g. 192.168.1.50) in the top toolbar first.");
+        return;
+      }
+      const url = `http://${ip}/scrbutton?button=${cmd}&lang=en`;
+      fetch(url, { mode: "no-cors" }).catch(() => {});
+      showToast(`Sent '${cmd}' to oscilloscope`);
+      setTimeout(() => refreshLiveScreen(), 700);
+    }
+
+    function openFetchScopeModal() {
+      const ip = getScopeIp();
+      if (!ip || ip.trim().length < 7 || !ip.includes(".")) {
+        alert("Please enter a valid oscilloscope IP address (e.g. 192.168.1.50) in the top toolbar first.");
+        return;
+      }
+      document.getElementById("fetchScopeModal").classList.remove("hidden");
+    }
+
+    function closeFetchScopeModal() {
+      document.getElementById("fetchScopeModal").classList.add("hidden");
+    }
+
+    function onFetchScopeOverlayClick(e) {
+      if (e.target && e.target.id === "fetchScopeModal") {
+        closeFetchScopeModal();
+      }
+    }
+
+    function triggerDirectScopeFormDownload(ip, sourceVal, pointsVal = "0") {
+      const cleanIp = cleanScopeIp(ip);
+      if (!cleanIp) {
+        alert("Please configure the oscilloscope IP first.");
+        return;
+      }
+      let iframe = document.getElementById("hiddenScopeDownloadIframe");
+      if (!iframe) {
+        iframe = document.createElement("iframe");
+        iframe.id = "hiddenScopeDownloadIframe";
+        iframe.name = "hiddenScopeDownloadIframe";
+        iframe.style.display = "none";
+        document.body.appendChild(iframe);
+      }
+      let form = document.getElementById("hiddenScopeDownloadForm");
+      if (!form) {
+        form = document.createElement("form");
+        form.id = "hiddenScopeDownloadForm";
+        form.method = "POST";
+        form.style.display = "none";
+        document.body.appendChild(form);
+      }
+      form.action = `http://${cleanIp}/chaninfo.htm`;
+      form.target = "hiddenScopeDownloadIframe";
+      form.innerHTML = `
+        <input type="hidden" name="lang" value="en">
+        <input type="hidden" name="source" value="${sourceVal}">
+        <input type="hidden" name="format" value="1">
+        <input type="hidden" name="points" value="${pointsVal}">
+        <input type="hidden" name="button" value="Save">
+      `;
+      form.submit();
+      showToast(`Downloading CH${Number(sourceVal) + 1} CSV directly from RTC1002...`);
+    }
+
+    async function fetchChannelFromScope(sourceVal, pointsVal = "0") {
+      const ip = getScopeIp();
+      if (!ip) throw new Error("No IP set");
+
+      let csvText = null;
+
+      // 1. Try local WaveSight Proxy (/api/scope_fetch) which eliminates browser CORS restrictions
+      try {
+        const proxyParams = new URLSearchParams();
+        proxyParams.append("ip", ip);
+        proxyParams.append("source", sourceVal.toString());
+        proxyParams.append("points", pointsVal.toString());
+        const proxyResp = await fetch("/api/scope_fetch", {
+          method: "POST",
+          headers: { "Content-Type": "application/x-www-form-urlencoded" },
+          body: proxyParams.toString()
+        });
+        if (proxyResp.ok) {
+          csvText = await proxyResp.text();
+        }
+      } catch (proxyErr) {
+        console.debug("Local proxy not active, trying direct instrument connection:", proxyErr);
+      }
+
+      // 2. If proxy not available, try direct browser fetch to oscilloscope
+      if (!csvText) {
+        const url = `http://${ip}/chaninfo.htm`;
+        const formData = new URLSearchParams();
+        formData.append("lang", "en");
+        formData.append("source", sourceVal.toString());
+        formData.append("format", "1");
+        formData.append("points", pointsVal.toString());
+        formData.append("button", "Save");
+
+        try {
+          const resp = await fetch(url, {
+            method: "POST",
+            headers: { "Content-Type": "application/x-www-form-urlencoded" },
+            body: formData.toString()
+          });
+          if (resp.ok) {
+            csvText = await resp.text();
+          }
+        } catch (directErr) {
+          console.warn("Direct async fetch blocked by browser CORS policy:", directErr);
+        }
+      }
+
+      // 3. If CSV text obtained, parse and display directly on screen
+      if (csvText) {
+        const parsed = parseCSVText(csvText);
+        if (parsed) {
+          const chId = Number(sourceVal) === 0 ? 1 : 2;
+          const ch = state.channels[chId - 1];
+          ch.data = { time: parsed.time, voltage: parsed.channels[0] };
+          ch.fileName = `CH${chId}.csv`;
+          ch.enabled = true;
+          if (ch.filter > 0) {
+            ch.filteredVoltage = computeFilteredVoltage(ch.data.voltage, ch.filter);
+          } else {
+            ch.filteredVoltage = null;
+          }
+          updateChannelUI(chId);
+          calculateChannelMetrics(ch);
+          redraw();
+          showToast(`CH${chId} waveform displayed from RTC1002!`);
+          return true;
+        }
+      }
+
+      // 4. Fallback if both failed (e.g. running plain python -m http.server without proxy)
+      triggerDirectScopeFormDownload(ip, sourceVal, pointsVal);
+      showToast(`CH${Number(sourceVal) + 1} CSV downloaded. Usa 'python server.py 8080' para carga directa automática sin descargar archivos.`, 6000);
+      return false;
+    }
+
+    async function executeFetchScopeData() {
+      const ip = getScopeIp();
+      if (!ip) {
+        alert("Please enter the RTC1002 IP address first.");
+        return;
+      }
+      const source = document.getElementById("selScopeFetchSource").value;
+      const points = document.getElementById("selScopeFetchPoints").value;
+      const btn = document.getElementById("btnExecuteFetchScope");
+      const oldText = btn.textContent;
+      btn.textContent = "Fetching...";
+      btn.disabled = true;
+
+      try {
+        let ok1 = false, ok2 = false;
+        if (source === "both") {
+          ok1 = await fetchChannelFromScope("0", points);
+          await new Promise(r => setTimeout(r, 400));
+          ok2 = await fetchChannelFromScope("1", points);
+          if (ok1 || ok2) {
+            showToast("¡Adquisición cargada y mostrada en pantalla!");
+            closeFetchScopeModal();
+            return;
+          }
+        } else {
+          const ok = await fetchChannelFromScope(source, points);
+          if (ok) {
+            showToast("¡Adquisición cargada y mostrada en pantalla!");
+            closeFetchScopeModal();
+            return;
+          }
+        }
+
+        // Flujo asistido para web en internet (cuando el navegador no tiene proxy local)
+        const dropzone = document.getElementById("fetchScopeAssistedDropzone");
+        const mainText = document.getElementById("dropzoneMainText");
+        const subText = document.getElementById("dropzoneSubText");
+        const statusEl = document.getElementById("fetchDownloadStatus");
+
+        if (statusEl) {
+          statusEl.textContent = "Descarga en curso en tu navegador";
+          statusEl.style.color = "#22c55e";
+        }
+        if (mainText) mainText.textContent = "Paso 2: Cargar archivo(s) descargados";
+        if (subText) subText.innerHTML = "Cuando termine la descarga en Chrome, <b>arrástralo aquí desde tu barra de descargas</b> o haz clic para seleccionarlo.";
+        if (dropzone) {
+          dropzone.classList.add("drag-active");
+          setTimeout(() => dropzone.classList.remove("drag-active"), 1500);
+        }
+
+        showToast("Descarga solicitada al osciloscopio. Arrastra el archivo o pulsa en Paso 2 cuando termine.", 5000);
+
+      } catch (e) {
+        console.error(e);
+      } finally {
+        btn.textContent = oldText;
+        btn.disabled = false;
+      }
+    }
+
+    function handleFetchedScopeFiles(input) {
+      if (input.files && input.files.length > 0) {
+        loadMultipleScopeFiles(input.files);
+        input.value = "";
+        closeFetchScopeModal();
+      }
+    }
+
+    function loadMultipleScopeFiles(files) {
+      let count = 0;
+      Array.from(files).forEach(f => {
+        loadCSVFile(f);
+        count++;
+      });
+      showToast(`Cargando ${count} archivo(s) de adquisición...`);
+    }
+
+    function makeElementDraggable(elmnt, handle) {
+      let pos1 = 0, pos2 = 0, pos3 = 0, pos4 = 0;
+      const targetHandle = handle || elmnt;
+      targetHandle.onmousedown = dragMouseDown;
+
+      function dragMouseDown(e) {
+        if (e.target.tagName === "BUTTON" || e.target.tagName === "INPUT" || e.target.tagName === "SELECT") return;
+        e.preventDefault();
+        pos3 = e.clientX;
+        pos4 = e.clientY;
+        document.onmouseup = closeDragElement;
+        document.onmousemove = elementDrag;
+      }
+
+      function elementDrag(e) {
+        e.preventDefault();
+        pos1 = pos3 - e.clientX;
+        pos2 = pos4 - e.clientY;
+        pos3 = e.clientX;
+        pos4 = e.clientY;
+        elmnt.style.top = Math.max(10, elmnt.offsetTop - pos2) + "px";
+        elmnt.style.left = Math.max(10, elmnt.offsetLeft - pos1) + "px";
+        elmnt.style.right = "auto";
+      }
+
+      function closeDragElement() {
+        document.onmouseup = null;
+        document.onmousemove = null;
+      }
     }
   </script>
 </body>
