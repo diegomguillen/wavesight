@@ -1056,16 +1056,21 @@
               Conexión directa con tu osciloscopio en la red local. Sigue estos 2 sencillos pasos:
             </div>
 
-            <!-- AVISO DE SEGURIDAD HTTPS (GITHUB PAGES) -->
-            <div id="httpsMixedContentNotice" style="display:none; background:rgba(245, 158, 11, 0.1); border:1px solid rgba(245, 158, 11, 0.4); border-radius:6px; padding:10px 12px; font-size:11px; color:#fef3c7;">
-              <div style="font-weight:700; color:#fbbf24; display:flex; align-items:center; gap:6px; margin-bottom:5px;">
-                <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
-                <span>Aviso para GitHub Pages (HTTPS &rarr; IP local HTTP):</span>
+            <!-- AYUDA / HABILITAR EN NAVEGADOR -->
+            <div id="scopeBrowserHelpNotice" style="background:rgba(56, 189, 248, 0.08); border:1px solid rgba(56, 189, 248, 0.35); border-radius:6px; padding:10px 12px; font-size:11.5px; color:#e0f2fe;">
+              <div style="font-weight:700; color:#38bdf8; display:flex; align-items:center; gap:6px; margin-bottom:6px; font-size:11.5px;">
+                <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+                <span>Habilitar en Navegador para que permita interactuar y descargar directamente del osciloscopio:</span>
               </div>
-              <div style="line-height:1.45; color:#fde68a;">
-                Chrome bloquea por defecto descargas hacia IPs locales por seguridad (Mixed Content).
-                <br>
-                <b>Solución en 10 segundos:</b> Haz clic en el icono 🔒 a la izquierda de la URL &rarr; <b>Configuración del sitio</b> &rarr; <b>Contenido no seguro: Permitir</b> &rarr; Recargar la página.
+              <div style="line-height:1.45; color:#cbd5e1; display:flex; flex-direction:column; gap:4px; padding-left:4px;">
+                <div style="display:flex; align-items:flex-start; gap:6px;">
+                  <span style="color:#38bdf8; font-weight:700;">1.</span>
+                  <span>En <b>ajustes de página</b> y <b>configuración del sitio</b>, cambia <b>Contenido no seguro</b> de <i>bloquear</i> a <b>permitir</b>.</span>
+                </div>
+                <div style="display:flex; align-items:flex-start; gap:6px;">
+                  <span style="color:#38bdf8; font-weight:700;">2.</span>
+                  <span>Vuelve a la pestaña de <b>WaveSight</b> y <b>recarga la página</b>.</span>
+                </div>
               </div>
             </div>
 
@@ -3946,10 +3951,6 @@
       const directLink = document.getElementById("btnOpenScopeDirectWeb");
       if (directLink) {
         directLink.href = `http://${ip}/`;
-      }
-      const notice = document.getElementById("httpsMixedContentNotice");
-      if (notice) {
-        notice.style.display = (window.location.protocol === "https:") ? "block" : "none";
       }
       document.getElementById("fetchScopeModal").classList.remove("hidden");
     }
