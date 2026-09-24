@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Digital Oscilloscope Pro - 4 Channels</title>
+  <title>WaveSight - Digital Oscilloscope</title>
   <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cdefs%3E%3ClinearGradient id='b' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%230a0f1d'/%3E%3Cstop offset='1' stop-color='%2305080e'/%3E%3C/linearGradient%3E%3ClinearGradient id='w' x1='0' y1='0' x2='1' y2='0'%3E%3Cstop offset='0' stop-color='%23ffd600'/%3E%3Cstop offset='0.5' stop-color='%2300e5ff'/%3E%3Cstop offset='1' stop-color='%2300e676'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect x='2' y='2' width='60' height='60' rx='14' fill='url(%23b)' stroke='%2322334d' stroke-width='2.5'/%3E%3Cline x1='8' y1='32' x2='56' y2='32' stroke='%231c2b42' stroke-width='1.2' stroke-dasharray='2 3'/%3E%3Cline x1='32' y1='8' x2='32' y2='56' stroke='%231c2b42' stroke-width='1.2' stroke-dasharray='2 3'/%3E%3Cpath d='M8 32 C 16 32, 19 14, 25 14 C 31 14, 33 50, 39 50 C 45 50, 48 32, 56 32' fill='none' stroke='url(%23w)' stroke-width='3.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3Ccircle cx='25' cy='14' r='2.5' fill='%23ffd600'/%3E%3Ccircle cx='39' cy='50' r='2.5' fill='%2300e676'/%3E%3C/svg%3E">
   <link rel="alternate icon" href="favicon.svg" type="image/svg+xml">
   <style>
@@ -251,7 +251,8 @@
 
     /* RIGHT SIDEBAR */
     .sidebar {
-      width: 320px;
+      width: 580px;
+      max-width: 50vw;
       background: var(--bg-panel);
       border-left: 1px solid var(--border-color);
       display: flex;
@@ -264,6 +265,12 @@
     .sidebar-section {
       padding: 10px 12px;
       border-bottom: 1px solid var(--border-color);
+    }
+
+    #channelsContainer {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 8px;
     }
 
     .section-title {
@@ -283,17 +290,12 @@
       background: var(--bg-card);
       border: 1px solid var(--border-color);
       border-radius: 6px;
-      margin-bottom: 8px;
       overflow: hidden;
       transition: border-color 0.2s;
     }
 
     .channel-card.active {
       border-color: var(--card-color, var(--border-bright));
-    }
-
-    .channel-card:last-child {
-      margin-bottom: 0;
     }
 
     .ch-header {
@@ -458,7 +460,7 @@
 
     .measurements-grid {
       display: grid;
-      grid-template-columns: repeat(4, 1fr) 230px;
+      grid-template-columns: repeat(4, minmax(130px, 1fr)) 220px 220px;
       gap: 8px;
       padding: 6px 10px 8px 10px;
       flex: 1;
@@ -520,6 +522,23 @@
       display: flex;
       flex-direction: column;
       gap: 3px;
+    }
+
+    .math-readout-card {
+      background: #110d1c;
+      border: 1px solid rgba(213, 0, 249, 0.4);
+      border-radius: 5px;
+      padding: 6px 8px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      gap: 3px;
+      transition: all 0.2s ease;
+    }
+
+    .math-readout-card.active {
+      border-color: var(--math-color);
+      box-shadow: 0 0 10px rgba(213, 0, 249, 0.25);
     }
 
     .cursor-readout-title {
@@ -687,6 +706,33 @@
       background: #991b1b !important;
       color: #fff !important;
     }
+
+    /* TOAST NOTIFICATION */
+    .toast-notification {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      background: linear-gradient(135deg, #162032 0%, #0d1522 100%);
+      border: 1px solid #38bdf8;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6), 0 0 14px rgba(56, 189, 248, 0.35);
+      color: #f1f5f9;
+      padding: 10px 16px;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      z-index: 1000;
+      opacity: 0;
+      transform: translateY(12px);
+      transition: opacity 0.25s ease, transform 0.25s ease;
+      pointer-events: none;
+    }
+    .toast-notification.show {
+      opacity: 1;
+      transform: translateY(0);
+    }
   </style>
 </head>
 <body>
@@ -696,7 +742,7 @@
     <div class="brand">
       <div class="brand-logo">~</div>
       <div class="brand-title">
-        Digital Oscilloscope Pro
+        WaveSight
         <span class="brand-badge">4-CH &bull; High Resolution</span>
       </div>
     </div>
@@ -735,7 +781,13 @@
         PNG Screenshot
       </button>
 
-      <button class="btn" id="btnExportMeas" title="Export measurements report to CSV">
+      <button class="btn" id="btnImportSession" title="Import complete workspace session (.json)">
+        <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path></svg>
+        Import Session
+      </button>
+      <input type="file" id="sessionFileInput" accept=".json,application/json" style="display:none">
+
+      <button class="btn" id="btnExportMeas" title="Export complete measurements and workspace session (.json)">
         <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
         Export Measurements
       </button>
@@ -804,8 +856,8 @@
 
         <!-- DRAG & DROP OVERLAY -->
         <div class="drop-overlay" id="dropOverlay">
-          <div class="drop-title">Drop your CSV files here</div>
-          <div class="drop-desc">Drag and drop ch1.csv, ch2.csv or any multi-channel oscillogram</div>
+          <div class="drop-title">Drop your files here</div>
+          <div class="drop-desc">Drag and drop ch1.csv, ch2.csv or an exported .json session file</div>
         </div>
       </div>
 
@@ -875,37 +927,6 @@
         </div>
 
         <div id="channelsContainer"></div>
-
-        <!-- MATH CHANNEL -->
-        <div class="channel-card" style="--card-color: var(--math-color); margin-top: 8px;">
-          <div class="ch-header">
-            <div class="ch-id" style="color: var(--math-color);">
-              <span class="ch-badge" style="background: var(--math-color);"></span>
-              <span>MATH (CH1 - CH2)</span>
-            </div>
-            <div class="ch-toggle" id="mathToggle" onclick="toggleMathChannel()">OFF</div>
-          </div>
-          <div class="ch-body">
-            <div class="control-row">
-              <div class="control-group">
-                <label class="control-label">Operation</label>
-                <select class="select" id="selMathOp" onchange="onMathOpChange(this.value)">
-                  <option value="sub">CH1 - CH2 (Differential)</option>
-                  <option value="add">CH1 + CH2 (Sum)</option>
-                  <option value="inv1">-CH1 (Invert CH1)</option>
-                </select>
-              </div>
-              <div class="control-group">
-                <label class="control-label">Scale V/div</label>
-                <select class="select" id="selMathScale" onchange="onMathScaleChange(this.value)">
-                  <option value="0.5">500 mV/div</option>
-                  <option value="1.0" selected>1.0 V/div</option>
-                  <option value="2.0">2.0 V/div</option>
-                </select>
-              </div>
-            </div>
-          </div>
-        </div>
       </div>
 
       <!-- DISPLAY & RETICLE -->
@@ -946,7 +967,9 @@
           vOffset: 0.0, // Predefined 0.0V offset
           tOffset: 0.0, // Individual channel X offset (time delay)
           invert: false,
+          filter: 0, // 0: Raw, 5: Low, 11: Med, 25: High, 51: Max
           data: null,
+          filteredVoltage: null,
           fileName: "No data",
           metrics: null
         },
@@ -957,7 +980,9 @@
           vOffset: 0.0, // Predefined 0.0V offset
           tOffset: 0.0, // Individual channel X offset (time delay)
           invert: false,
+          filter: 0,
           data: null,
+          filteredVoltage: null,
           fileName: "No data",
           metrics: null
         },
@@ -968,7 +993,9 @@
           vOffset: 0.0,
           tOffset: 0.0,
           invert: false,
+          filter: 0,
           data: null,
+          filteredVoltage: null,
           fileName: "No data",
           metrics: null
         },
@@ -979,7 +1006,9 @@
           vOffset: 0.0,
           tOffset: 0.0,
           invert: false,
+          filter: 0,
           data: null,
+          filteredVoltage: null,
           fileName: "No data",
           metrics: null
         }
@@ -1007,6 +1036,7 @@
         targetChannel: 1,
         dragging: null
       },
+      snappedIntersection: null,
       interaction: {
         isPanning: false,
         panStartX: 0,
@@ -1129,9 +1159,23 @@
             </div>
 
             <div class="control-row" style="margin-top:2px;">
-              <button class="btn" id="btn-inv-ch-${ch.id}" onclick="toggleInvert(${ch.id})" style="width:100%; justify-content:center;">
-                Invert Polarity (&plusmn;)
-              </button>
+              <div class="control-group">
+                <label class="control-label">Filter (Smooth)</label>
+                <select class="select" id="filter-ch-${ch.id}" onchange="onFilterChange(${ch.id}, this.value)">
+                  <option value="0" ${ch.filter === 0 ? "selected" : ""}>Off (Raw)</option>
+                  <option value="5" ${ch.filter === 5 ? "selected" : ""}>Low (5 pts)</option>
+                  <option value="11" ${ch.filter === 11 ? "selected" : ""}>Med (11 pts)</option>
+                  <option value="25" ${ch.filter === 25 ? "selected" : ""}>High (25 pts)</option>
+                  <option value="51" ${ch.filter === 51 ? "selected" : ""}>Max (51 pts)</option>
+                </select>
+              </div>
+
+              <div class="control-group">
+                <label class="control-label">Polarity</label>
+                <button class="btn" id="btn-inv-ch-${ch.id}" onclick="toggleInvert(${ch.id})" style="width:100%; justify-content:center; padding:3px 6px; font-size:11px;">
+                  ${ch.invert ? "Inverted (-V)" : "Normal (+V)"}
+                </button>
+              </div>
             </div>
           </div>
         `;
@@ -1166,6 +1210,50 @@
         grid.appendChild(card);
       });
 
+      // MATH CHANNEL CARD (Positioned next to cursors card)
+      const mathCard = document.createElement("div");
+      mathCard.className = `math-readout-card ${state.math.enabled ? "active" : ""}`;
+      mathCard.id = "mathCardDrawer";
+      mathCard.innerHTML = `
+        <div class="math-header" style="display:flex; align-items:center; justify-content:space-between;">
+          <div style="display:flex; align-items:center; gap:6px; color:var(--math-color); font-size:11px; font-weight:700;">
+            <span class="ch-badge" style="background:var(--math-color); width:10px; height:10px;"></span>
+            <span>MATH (CH1 &minus; CH2)</span>
+          </div>
+          <div class="ch-toggle ${state.math.enabled ? "on" : ""}" id="mathToggle" onclick="toggleMathChannel()" style="padding:1px 6px; font-size:9.5px;">
+            ${state.math.enabled ? "ON" : "OFF"}
+          </div>
+        </div>
+        <div class="math-controls" style="display:flex; gap:6px; margin-top:2px;">
+          <div style="flex:1;">
+            <label class="control-label" style="font-size:9.5px; margin-bottom:2px;">Operation</label>
+            <select class="select" id="selMathOp" onchange="onMathOpChange(this.value)" style="padding:2px 4px; font-size:10px; height:24px;">
+              <option value="sub" ${state.math.op === "sub" ? "selected" : ""}>CH1 - CH2 (Diff)</option>
+              <option value="add" ${state.math.op === "add" ? "selected" : ""}>CH1 + CH2 (Sum)</option>
+              <option value="inv1" ${state.math.op === "inv1" ? "selected" : ""}>-CH1 (Invert)</option>
+            </select>
+          </div>
+          <div style="width:72px;">
+            <label class="control-label" style="font-size:9.5px; margin-bottom:2px;">Scale</label>
+            <select class="select" id="selMathScale" onchange="onMathScaleChange(this.value)" style="padding:2px 4px; font-size:10px; height:24px;">
+              <option value="0.2" ${state.math.vScale === 0.2 ? "selected" : ""}>200 mV</option>
+              <option value="0.5" ${state.math.vScale === 0.5 ? "selected" : ""}>500 mV</option>
+              <option value="1.0" ${state.math.vScale === 1.0 ? "selected" : ""}>1.0 V</option>
+              <option value="2.0" ${state.math.vScale === 2.0 ? "selected" : ""}>2.0 V</option>
+              <option value="5.0" ${state.math.vScale === 5.0 ? "selected" : ""}>5.0 V</option>
+            </select>
+          </div>
+        </div>
+        <div class="meas-row" style="margin-top:2px; font-size:10.5px; border-top:1px solid rgba(213,0,249,0.2); padding-top:2px;">
+          <span class="meas-k" style="color:#d500f9;">Status:</span>
+          <span class="meas-v" id="mathStatusText" style="color:${state.math.enabled ? '#d500f9' : '#8496b0'}; font-weight:600;">
+            ${state.math.enabled ? "Active Trace" : "Disabled"}
+          </span>
+        </div>
+      `;
+      grid.appendChild(mathCard);
+
+      // CURSOR READOUT CARD
       const cursorCard = document.createElement("div");
       cursorCard.className = "cursor-readout-card";
       cursorCard.innerHTML = `
@@ -1196,6 +1284,11 @@
             state.channels[0].data = { time: p1.time, voltage: p1.channels[0] };
             state.channels[0].fileName = "ch1.csv";
             state.channels[0].enabled = true;
+            if (state.channels[0].filter > 0) {
+              state.channels[0].filteredVoltage = computeFilteredVoltage(state.channels[0].data.voltage, state.channels[0].filter);
+            } else {
+              state.channels[0].filteredVoltage = null;
+            }
             updateChannelUI(1);
             calculateChannelMetrics(state.channels[0]);
           }
@@ -1209,6 +1302,11 @@
             state.channels[1].data = { time: p2.time, voltage: p2.channels[0] };
             state.channels[1].fileName = "ch2.csv";
             state.channels[1].enabled = true;
+            if (state.channels[1].filter > 0) {
+              state.channels[1].filteredVoltage = computeFilteredVoltage(state.channels[1].data.voltage, state.channels[1].filter);
+            } else {
+              state.channels[1].filteredVoltage = null;
+            }
             updateChannelUI(2);
             calculateChannelMetrics(state.channels[1]);
           }
@@ -1307,6 +1405,7 @@
               ch.data = { time: parsed.time, voltage: parsed.channels[i] };
               ch.fileName = `${file.name} (CH${i + 1})`;
               ch.enabled = true;
+              ch.filteredVoltage = ch.filter > 0 ? computeFilteredVoltage(ch.data.voltage, ch.filter) : null;
               updateChannelUI(i + 1);
               calculateChannelMetrics(ch);
             }
@@ -1316,6 +1415,7 @@
           ch.data = { time: parsed.time, voltage: parsed.channels[0] };
           ch.fileName = file.name;
           ch.enabled = true;
+          ch.filteredVoltage = ch.filter > 0 ? computeFilteredVoltage(ch.data.voltage, ch.filter) : null;
           updateChannelUI(targetId);
           calculateChannelMetrics(ch);
         }
@@ -1452,8 +1552,10 @@
       ];
 
       for (let i = 1; i <= 4; i++) {
+        const ch = state.channels[i - 1];
+        ch.filteredVoltage = ch.filter > 0 ? computeFilteredVoltage(ch.data.voltage, ch.filter) : null;
         updateChannelUI(i);
-        calculateChannelMetrics(state.channels[i - 1]);
+        calculateChannelMetrics(ch);
       }
       updateCursorDropdownOptions();
       updateOSDChannels();
@@ -1477,7 +1579,7 @@
         return;
       }
 
-      const v = channel.data.voltage;
+      const v = (channel.filter > 0 && channel.filteredVoltage) ? channel.filteredVoltage : channel.data.voltage;
       const n = v.length;
       if (n === 0) return;
 
@@ -1592,6 +1694,8 @@
 
       drawCursors(width, height);
 
+      drawSnapIndicator(width, height);
+
       drawNotes(width, height);
     }
 
@@ -1651,7 +1755,7 @@
 
     function drawCleanChannelWaveform(ch, w, h) {
       const times = ch.data.time;
-      const volts = ch.data.voltage;
+      const volts = (ch.filter > 0 && ch.filteredVoltage) ? ch.filteredVoltage : ch.data.voltage;
       const n = times.length;
       if (n === 0) return;
 
@@ -1744,8 +1848,8 @@
       if (!ch1.data || !ch2.data) return;
 
       const times = ch1.data.time;
-      const v1 = ch1.data.voltage;
-      const v2 = ch2.data.voltage;
+      const v1 = (ch1.filter > 0 && ch1.filteredVoltage) ? ch1.filteredVoltage : ch1.data.voltage;
+      const v2 = (ch2.filter > 0 && ch2.filteredVoltage) ? ch2.filteredVoltage : ch2.data.voltage;
       const n = Math.min(v1.length, v2.length);
 
       const tb = state.timebase;
@@ -2075,15 +2179,16 @@
     function interpolateVoltageAtTime(channel, tTarget) {
       if (!channel || !channel.data || !channel.data.time) return 0;
       const times = channel.data.time;
-      const volts = channel.data.voltage;
+      const volts = (channel.filter > 0 && channel.filteredVoltage) ? channel.filteredVoltage : channel.data.voltage;
       const n = times.length;
       if (n === 0) return 0;
 
       // Adjust for channel's individual time offset
       const tPhysical = tTarget - (channel.tOffset || 0.0);
+      const invert = channel.invert ? -1 : 1;
 
-      if (tPhysical <= times[0]) return volts[0] * channel.probe;
-      if (tPhysical >= times[n - 1]) return volts[n - 1] * channel.probe;
+      if (tPhysical <= times[0]) return volts[0] * channel.probe * invert;
+      if (tPhysical >= times[n - 1]) return volts[n - 1] * channel.probe * invert;
 
       let low = 0, high = n - 1;
       while (high - low > 1) {
@@ -2093,7 +2198,7 @@
       }
 
       const frac = (tPhysical - times[low]) / (times[high] - times[low]);
-      return (volts[low] + frac * (volts[high] - volts[low])) * channel.probe;
+      return (volts[low] + frac * (volts[high] - volts[low])) * channel.probe * invert;
     }
 
     /* ==========================================================================
@@ -2309,12 +2414,16 @@
     function toggleMathChannel() {
       state.math.enabled = !state.math.enabled;
       const toggle = document.getElementById("mathToggle");
+      const card = document.getElementById("mathCardDrawer");
+      const statusText = document.getElementById("mathStatusText");
       if (state.math.enabled) {
-        toggle.classList.add("on");
-        toggle.textContent = "ON";
+        if (toggle) { toggle.classList.add("on"); toggle.textContent = "ON"; }
+        if (card) card.classList.add("active");
+        if (statusText) { statusText.textContent = "Active Trace"; statusText.style.color = "#d500f9"; }
       } else {
-        toggle.classList.remove("on");
-        toggle.textContent = "OFF";
+        if (toggle) { toggle.classList.remove("on"); toggle.textContent = "OFF"; }
+        if (card) card.classList.remove("active");
+        if (statusText) { statusText.textContent = "Disabled"; statusText.style.color = "#8496b0"; }
       }
       redraw();
     }
@@ -2384,6 +2493,20 @@
       if (voffEl) voffEl.value = `${ch.vOffset.toFixed(2)} V`;
       const toffEl = document.getElementById(`toffset-ch-${ch.id}`);
       if (toffEl) toffEl.value = formatTime(ch.tOffset || 0.0);
+
+      const probeEl = document.getElementById(`probe-ch-${ch.id}`);
+      if (probeEl) probeEl.value = ch.probe.toString();
+      const vscaleEl = document.getElementById(`vscale-ch-${ch.id}`);
+      if (vscaleEl) vscaleEl.value = ch.vScale.toString();
+      const filterEl = document.getElementById(`filter-ch-${ch.id}`);
+      if (filterEl) filterEl.value = (ch.filter || 0).toString();
+
+      const btnInv = document.getElementById(`btn-inv-ch-${ch.id}`);
+      if (btnInv) {
+        if (ch.invert) btnInv.classList.add("btn-active");
+        else btnInv.classList.remove("btn-active");
+        btnInv.textContent = ch.invert ? "Inverted (-V)" : "Normal (+V)";
+      }
     }
 
     function getChannelDisplayName(ch) {
@@ -2447,14 +2570,32 @@
         e.preventDefault();
         dropOverlay.classList.remove("active");
         if (e.dataTransfer.files) {
-          Array.from(e.dataTransfer.files).forEach(f => loadCSVFile(f));
+          Array.from(e.dataTransfer.files).forEach(f => {
+            if (f.name.toLowerCase().endsWith(".json") || f.type === "application/json") {
+              loadJSONSessionFile(f);
+            } else {
+              loadCSVFile(f);
+            }
+          });
         }
       });
 
       document.getElementById("btnLoadRealRamp").addEventListener("click", loadDemoWaveformSignal);
       document.getElementById("btnAutoset").addEventListener("click", autoset);
       document.getElementById("btnExportImage").addEventListener("click", exportCanvasImage);
-      document.getElementById("btnExportMeas").addEventListener("click", exportMeasurementsCSV);
+      document.getElementById("btnExportMeas").addEventListener("click", exportSessionJSON);
+
+      const btnImport = document.getElementById("btnImportSession");
+      const fileInputSession = document.getElementById("sessionFileInput");
+      if (btnImport && fileInputSession) {
+        btnImport.addEventListener("click", () => fileInputSession.click());
+        fileInputSession.addEventListener("change", (e) => {
+          if (e.target.files && e.target.files[0]) {
+            loadJSONSessionFile(e.target.files[0]);
+            fileInputSession.value = "";
+          }
+        });
+      }
 
       // Note modal input keyboard shortcuts
       const noteInput = document.getElementById("noteTextInput");
@@ -2473,10 +2614,22 @@
       canvas.addEventListener("mousedown", onCanvasMouseDown);
       window.addEventListener("mousemove", onCanvasMouseMove);
       window.addEventListener("mouseup", onCanvasMouseUp);
+      canvas.addEventListener("mouseleave", () => {
+        if (state.snappedIntersection) {
+          state.snappedIntersection = null;
+          redraw();
+        }
+      });
       canvas.addEventListener("wheel", onCanvasWheel, { passive: false });
       canvas.addEventListener("dblclick", (e) => {
         const rect = canvas.getBoundingClientRect();
-        openNoteModalAtPos(e.clientX - rect.left, e.clientY - rect.top);
+        let mx = e.clientX - rect.left;
+        let my = e.clientY - rect.top;
+        if (state.snappedIntersection) {
+          mx = state.snappedIntersection.xPix;
+          my = state.snappedIntersection.yPix;
+        }
+        openNoteModalAtPos(mx, my);
       });
     }
 
@@ -2560,7 +2713,13 @@
 
       // 5. If note mode is active: open note modal immediately on click
       if (state.noteMode) {
-        openNoteModalAtPos(mouseX, mouseY);
+        let mx = mouseX;
+        let my = mouseY;
+        if (state.snappedIntersection) {
+          mx = state.snappedIntersection.xPix;
+          my = state.snappedIntersection.yPix;
+        }
+        openNoteModalAtPos(mx, my);
         state.noteMode = false;
         const btn = document.getElementById("btnAddNote");
         if (btn) btn.classList.remove("btn-active");
@@ -2618,6 +2777,28 @@
         let nearX = false;
         let nearY = false;
 
+        // Intersection magnetic snap detection
+        let snapped = null;
+        if (showX && showY) {
+          const intersections = getCursorIntersections(w, h);
+          let closestSnapDist = 18; // 18px snap radius
+          intersections.forEach(inter => {
+            if (inter.xPix >= 0 && inter.xPix <= w && inter.yPix >= 0 && inter.yPix <= h) {
+              const d = Math.hypot(mouseX - inter.xPix, mouseY - inter.yPix);
+              if (d < closestSnapDist) {
+                closestSnapDist = d;
+                snapped = inter;
+              }
+            }
+          });
+        }
+
+        const prevSnap = state.snappedIntersection;
+        state.snappedIntersection = snapped;
+        if (Boolean(prevSnap) !== Boolean(snapped) || (prevSnap && snapped && (prevSnap.xTag !== snapped.xTag || prevSnap.yTag !== snapped.yTag))) {
+          redraw();
+        }
+
         if (showX) {
           const tb = state.timebase;
           const totalSpan = tb.scale * tb.divisions;
@@ -2639,7 +2820,8 @@
           }
         }
 
-        if (nearX && nearY) cursorStyle = "move";
+        if (snapped) cursorStyle = "cell";
+        else if (nearX && nearY) cursorStyle = "move";
         else if (nearX) cursorStyle = "ew-resize";
         else if (nearY) cursorStyle = "ns-resize";
 
@@ -2647,6 +2829,7 @@
       }
 
       if (state.cursors.dragging) {
+        state.snappedIntersection = null;
         if (state.cursors.dragging === "x1" || state.cursors.dragging === "x2") {
           const tb = state.timebase;
           const totalSpan = tb.scale * tb.divisions;
@@ -2769,29 +2952,41 @@
       const tb = state.timebase;
       const totalSpan = tb.scale * tb.divisions;
       const tStart = tb.offset - totalSpan / 2;
-      const t = tStart + (mouseX / w) * totalSpan;
 
-      const targetChId = state.cursors.targetChannel || 1;
+      let t, v, targetChId;
+      if (state.snappedIntersection) {
+        t = state.snappedIntersection.time;
+        v = state.snappedIntersection.voltage;
+        targetChId = state.cursors.targetChannel || 1;
+      } else {
+        t = tStart + (mouseX / w) * totalSpan;
+        targetChId = state.cursors.targetChannel || 1;
+        const ch = state.channels[targetChId - 1] || state.channels[0];
+        const midY = h / 2;
+        const pixelsPerVolt = (h / state.vDivisions) / ch.vScale;
+        v = (midY - mouseY) / pixelsPerVolt - ch.vOffset;
+      }
+
       const ch = state.channels[targetChId - 1] || state.channels[0];
-      const midY = h / 2;
-      const pixelsPerVolt = (h / state.vDivisions) / ch.vScale;
-      const v = (midY - mouseY) / pixelsPerVolt - ch.vOffset;
-
       state.activeNoteEditId = null;
       state.pendingNotePos = { time: t, voltage: v, targetChannel: targetChId };
 
       document.getElementById("noteModalTitle").textContent = "Add Oscilloscope Note";
       const chLabel = getChannelDisplayName(ch);
-      document.getElementById("notePositionInfo").textContent = `Anchor: t = ${formatTime(t)}, V = ${formatVoltage(v)} (${chLabel})`;
+      const snapTag = state.snappedIntersection ? ` [Cursor ${state.snappedIntersection.label}]` : "";
+      document.getElementById("notePositionInfo").textContent = `Anchor: t = ${formatTime(t)}, V = ${formatVoltage(v)} (${chLabel})${snapTag}`;
       const textInput = document.getElementById("noteTextInput");
-      textInput.value = "";
+      textInput.value = `t = ${formatTime(t)}, V = ${formatVoltage(v)}`;
       document.getElementById("btnDeleteNote").classList.add("hidden");
 
       selectNoteColor(ch.color || "#fbbf24");
 
       const modal = document.getElementById("noteModal");
       modal.classList.remove("hidden");
-      setTimeout(() => textInput.focus(), 60);
+      setTimeout(() => {
+        textInput.focus();
+        textInput.select();
+      }, 60);
     }
 
     function openNoteModalForEdit(note) {
@@ -2874,19 +3069,392 @@
       link.click();
     }
 
-    function exportMeasurementsCSV() {
-      let csv = "Channel,Alias,File,Vp+ (V),Vp- (V),Vpp (V),Vmean (V),Vrms (V)\n";
-      state.channels.forEach(ch => {
-        if (ch.enabled && ch.metrics) {
-          const m = ch.metrics;
-          csv += `"${ch.name}","${ch.alias || ""}","${ch.fileName}",${m.max.toFixed(4)},${m.min.toFixed(4)},${m.vpp.toFixed(4)},${m.mean.toFixed(4)},${m.rms.toFixed(4)}\n`;
+    /* ==========================================================================
+       CURSOR INTERSECTIONS & SNAP INDICATOR
+       ========================================================================== */
+    function getCursorIntersections(w, h) {
+      const showX = (state.cursors.mode === "X" || state.cursors.mode === "XY");
+      const showY = (state.cursors.mode === "Y" || state.cursors.mode === "XY");
+      if (!showX || !showY) return [];
+
+      const tb = state.timebase;
+      const totalSpan = tb.scale * tb.divisions;
+      const tStart = tb.offset - totalSpan / 2;
+      const timeToPixel = w / totalSpan;
+
+      const x1Pix = (state.cursors.x1 - tStart) * timeToPixel;
+      const x2Pix = (state.cursors.x2 - tStart) * timeToPixel;
+
+      const targetCh = state.channels[state.cursors.targetChannel - 1] || state.channels[0];
+      const midY = h / 2;
+      const pixelsPerVolt = (h / state.vDivisions) / targetCh.vScale;
+      const y1Pix = midY - (state.cursors.y1 + targetCh.vOffset) * pixelsPerVolt;
+      const y2Pix = midY - (state.cursors.y2 + targetCh.vOffset) * pixelsPerVolt;
+
+      return [
+        { xPix: x1Pix, yPix: y1Pix, time: state.cursors.x1, voltage: state.cursors.y1, xTag: "X1", yTag: "Y1", label: "X1 ∩ Y1" },
+        { xPix: x1Pix, yPix: y2Pix, time: state.cursors.x1, voltage: state.cursors.y2, xTag: "X1", yTag: "Y2", label: "X1 ∩ Y2" },
+        { xPix: x2Pix, yPix: y1Pix, time: state.cursors.x2, voltage: state.cursors.y1, xTag: "X2", yTag: "Y1", label: "X2 ∩ Y1" },
+        { xPix: x2Pix, yPix: y2Pix, time: state.cursors.x2, voltage: state.cursors.y2, xTag: "X2", yTag: "Y2", label: "X2 ∩ Y2" }
+      ];
+    }
+
+    function drawSnapIndicator(w, h) {
+      if (!state.snappedIntersection) return;
+      const snap = state.snappedIntersection;
+      if (snap.xPix < 0 || snap.xPix > w || snap.yPix < 0 || snap.yPix > h) return;
+
+      ctx.save();
+      // Glowing outer magnetic ring
+      ctx.strokeStyle = "#38bdf8";
+      ctx.lineWidth = 2;
+      ctx.shadowColor = "#38bdf8";
+      ctx.shadowBlur = 8;
+      ctx.beginPath();
+      ctx.arc(snap.xPix, snap.yPix, 10, 0, Math.PI * 2);
+      ctx.stroke();
+
+      // Crosshair tick marks
+      ctx.shadowBlur = 0;
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      ctx.moveTo(snap.xPix - 16, snap.yPix);
+      ctx.lineTo(snap.xPix - 9, snap.yPix);
+      ctx.moveTo(snap.xPix + 9, snap.yPix);
+      ctx.lineTo(snap.xPix + 16, snap.yPix);
+      ctx.moveTo(snap.xPix, snap.yPix - 16);
+      ctx.lineTo(snap.xPix, snap.yPix - 9);
+      ctx.moveTo(snap.xPix, snap.yPix + 9);
+      ctx.lineTo(snap.xPix, snap.yPix + 16);
+      ctx.stroke();
+
+      // Center solid core point
+      ctx.fillStyle = "#ffffff";
+      ctx.beginPath();
+      ctx.arc(snap.xPix, snap.yPix, 2.5, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Floating badge with exact intersection coordinates
+      const badgeText = `SNAP [${snap.label}]: t = ${formatTime(snap.time)}, V = ${formatVoltage(snap.voltage)}`;
+      ctx.font = "bold 10px monospace";
+      const textWidth = ctx.measureText(badgeText).width;
+      const badgeW = textWidth + 16;
+      const badgeH = 22;
+      let badgeX = snap.xPix + 14;
+      let badgeY = snap.yPix - 30;
+      if (badgeX + badgeW > w - 10) badgeX = snap.xPix - badgeW - 14;
+      if (badgeY < 10) badgeY = snap.yPix + 14;
+
+      ctx.fillStyle = "rgba(11, 17, 28, 0.94)";
+      ctx.strokeStyle = "#38bdf8";
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      if (ctx.roundRect) ctx.roundRect(badgeX, badgeY, badgeW, badgeH, 4);
+      else ctx.rect(badgeX, badgeY, badgeW, badgeH);
+      ctx.fill();
+      ctx.stroke();
+
+      ctx.fillStyle = "#38bdf8";
+      ctx.textAlign = "left";
+      ctx.textBaseline = "middle";
+      ctx.fillText(badgeText, badgeX + 8, badgeY + badgeH / 2);
+
+      ctx.restore();
+    }
+
+    /* ==========================================================================
+       SIGNAL FILTERING & SMOOTHING (MOVING AVERAGE)
+       ========================================================================== */
+    function computeFilteredVoltage(rawVolts, windowSize) {
+      if (!windowSize || windowSize <= 1 || !rawVolts) return rawVolts;
+      const n = rawVolts.length;
+      if (n === 0) return rawVolts;
+      const out = new Float32Array(n);
+      const half = Math.floor(windowSize / 2);
+      let sum = 0;
+      let count = 0;
+
+      for (let i = 0; i < Math.min(half, n); i++) {
+        sum += rawVolts[i];
+        count++;
+      }
+
+      for (let i = 0; i < n; i++) {
+        const addIdx = i + half;
+        if (addIdx < n) {
+          sum += rawVolts[addIdx];
+          count++;
         }
-      });
-      const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+        const remIdx = i - half - 1;
+        if (remIdx >= 0) {
+          sum -= rawVolts[remIdx];
+          count--;
+        }
+        out[i] = count > 0 ? (sum / count) : rawVolts[i];
+      }
+      return out;
+    }
+
+    function onFilterChange(chId, val) {
+      const ch = state.channels[chId - 1];
+      if (!ch) return;
+      ch.filter = parseInt(val, 10) || 0;
+      if (ch.data && ch.data.voltage) {
+        ch.filteredVoltage = ch.filter > 0 ? computeFilteredVoltage(ch.data.voltage, ch.filter) : null;
+        calculateChannelMetrics(ch);
+      }
+      redraw();
+    }
+
+    /* ==========================================================================
+       EXPORT & IMPORT SESSION (JSON)
+       ========================================================================== */
+    function exportCanvasImage() {
       const link = document.createElement("a");
-      link.href = URL.createObjectURL(blob);
-      link.download = `measurements_${Date.now()}.csv`;
+      link.download = `oscilloscope_capture_${Date.now()}.png`;
+      link.href = canvas.toDataURL("image/png");
       link.click();
+    }
+
+    function exportSessionJSON() {
+      const sessionData = {
+        app: "WaveSight",
+        version: "2.0",
+        exportedAt: new Date().toISOString(),
+        timebase: {
+          scale: state.timebase.scale,
+          offset: state.timebase.offset,
+          divisions: state.timebase.divisions,
+          sampleRate: state.timebase.sampleRate
+        },
+        vDivisions: state.vDivisions,
+        cursors: {
+          mode: state.cursors.mode,
+          x1: state.cursors.x1,
+          x2: state.cursors.x2,
+          y1: state.cursors.y1,
+          y2: state.cursors.y2,
+          targetChannel: state.cursors.targetChannel
+        },
+        math: {
+          enabled: state.math.enabled,
+          op: state.math.op,
+          vScale: state.math.vScale,
+          vOffset: state.math.vOffset,
+          color: state.math.color
+        },
+        notes: state.notes.map(n => ({
+          id: n.id,
+          text: n.text,
+          time: n.time,
+          voltage: n.voltage,
+          targetChannel: n.targetChannel,
+          color: n.color,
+          relX: n.relX,
+          relY: n.relY
+        })),
+        channels: state.channels.map(ch => ({
+          id: ch.id,
+          name: ch.name,
+          alias: ch.alias || "",
+          color: ch.color,
+          enabled: ch.enabled,
+          probe: ch.probe,
+          vScale: ch.vScale,
+          vOffset: ch.vOffset,
+          tOffset: ch.tOffset || 0.0,
+          invert: !!ch.invert,
+          filter: ch.filter || 0,
+          fileName: ch.fileName,
+          metrics: ch.metrics ? { ...ch.metrics } : null,
+          data: ch.data && ch.data.time && ch.data.voltage ? {
+            time: Array.from(ch.data.time),
+            voltage: Array.from(ch.data.voltage)
+          } : null
+        }))
+      };
+
+      const jsonStr = JSON.stringify(sessionData);
+      const blob = new Blob([jsonStr], { type: "application/json" });
+      const link = document.createElement("a");
+      const now = new Date();
+      const pad = (num) => String(num).padStart(2, "0");
+      const dateStr = `${now.getFullYear()}${pad(now.getMonth()+1)}${pad(now.getDate())}_${pad(now.getHours())}${pad(now.getMinutes())}${pad(now.getSeconds())}`;
+      link.download = `oscilloscope_measurements_${dateStr}.json`;
+      link.href = URL.createObjectURL(blob);
+      link.click();
+      showToast("Measurements and workspace session exported (.json)");
+    }
+
+    function loadJSONSessionFile(file) {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        try {
+          importSessionJSON(e.target.result);
+        } catch (err) {
+          console.error("Error reading JSON session:", err);
+          alert("Failed to parse JSON session file: " + err.message);
+        }
+      };
+      reader.readAsText(file);
+    }
+
+    function importSessionJSON(raw) {
+      try {
+        const data = typeof raw === "string" ? JSON.parse(raw) : raw;
+        if (!data || (!data.channels && !data.timebase)) {
+          throw new Error("Invalid oscilloscope session JSON format");
+        }
+
+        // 1. Timebase
+        if (data.timebase) {
+          state.timebase.scale = Number(data.timebase.scale) || state.timebase.scale;
+          state.timebase.offset = Number(data.timebase.offset) || 0.0;
+          if (data.timebase.divisions) state.timebase.divisions = Number(data.timebase.divisions);
+          if (data.timebase.sampleRate) state.timebase.sampleRate = Number(data.timebase.sampleRate);
+
+          const selScale = document.getElementById("selTimeScale");
+          if (selScale) selScale.value = state.timebase.scale.toString();
+          const lblScale = document.getElementById("lblTimeScale");
+          if (lblScale) lblScale.textContent = `${formatTime(state.timebase.scale)}/div`;
+          const numOffset = document.getElementById("numTimeOffset");
+          if (numOffset) numOffset.value = formatTime(state.timebase.offset);
+          const osdTB = document.getElementById("osdTB");
+          if (osdTB) osdTB.textContent = `TB: ${formatTime(state.timebase.scale)}`;
+        }
+
+        // 2. Math
+        if (data.math) {
+          state.math.enabled = !!data.math.enabled;
+          state.math.op = data.math.op || "sub";
+          state.math.vScale = Number(data.math.vScale) || 1.0;
+          state.math.vOffset = Number(data.math.vOffset) || 0.0;
+          const mathToggle = document.getElementById("mathToggle");
+          const mathCard = document.getElementById("mathCardDrawer");
+          const mathStatus = document.getElementById("mathStatusText");
+          if (mathToggle) {
+            if (state.math.enabled) {
+              mathToggle.classList.add("on");
+              mathToggle.textContent = "ON";
+            } else {
+              mathToggle.classList.remove("on");
+              mathToggle.textContent = "OFF";
+            }
+          }
+          if (mathCard) {
+            if (state.math.enabled) mathCard.classList.add("active");
+            else mathCard.classList.remove("active");
+          }
+          if (mathStatus) {
+            mathStatus.textContent = state.math.enabled ? "Active Trace" : "Disabled";
+            mathStatus.style.color = state.math.enabled ? "#d500f9" : "#8496b0";
+          }
+          const selMathOp = document.getElementById("selMathOp");
+          if (selMathOp) selMathOp.value = state.math.op;
+          const selMathScale = document.getElementById("selMathScale");
+          if (selMathScale) selMathScale.value = state.math.vScale.toString();
+        }
+
+        // 3. Channels
+        if (Array.isArray(data.channels)) {
+          data.channels.forEach(inCh => {
+            const ch = state.channels.find(c => c.id === inCh.id);
+            if (!ch) return;
+            ch.alias = inCh.alias || "";
+            ch.enabled = !!inCh.enabled;
+            ch.probe = Number(inCh.probe) || 1.0;
+            ch.vScale = Number(inCh.vScale) || 1.0;
+            ch.vOffset = Number(inCh.vOffset) || 0.0;
+            ch.tOffset = Number(inCh.tOffset) || 0.0;
+            ch.invert = !!inCh.invert;
+            ch.filter = Number(inCh.filter) || 0;
+            ch.fileName = inCh.fileName || "Imported Data";
+
+            if (inCh.data && Array.isArray(inCh.data.time) && Array.isArray(inCh.data.voltage)) {
+              ch.data = {
+                time: new Float64Array(inCh.data.time),
+                voltage: new Float32Array(inCh.data.voltage)
+              };
+              if (ch.filter > 0) {
+                ch.filteredVoltage = computeFilteredVoltage(ch.data.voltage, ch.filter);
+              } else {
+                ch.filteredVoltage = null;
+              }
+            } else {
+              ch.data = null;
+              ch.filteredVoltage = null;
+            }
+
+            if (inCh.metrics) {
+              ch.metrics = { ...inCh.metrics };
+            } else if (ch.data) {
+              calculateChannelMetrics(ch);
+            } else {
+              ch.metrics = null;
+            }
+
+            updateChannelUI(ch.id);
+            updateMeasUI(ch.id);
+          });
+        }
+
+        // 4. Cursors
+        if (data.cursors) {
+          state.cursors.mode = data.cursors.mode || "off";
+          state.cursors.x1 = Number(data.cursors.x1) || state.cursors.x1;
+          state.cursors.x2 = Number(data.cursors.x2) || state.cursors.x2;
+          state.cursors.y1 = Number(data.cursors.y1) || state.cursors.y1;
+          state.cursors.y2 = Number(data.cursors.y2) || state.cursors.y2;
+          state.cursors.targetChannel = Number(data.cursors.targetChannel) || 1;
+
+          setCursorMode(state.cursors.mode);
+          const selTarget = document.getElementById("selCursorYTarget");
+          if (selTarget) selTarget.value = state.cursors.targetChannel.toString();
+        }
+
+        // 5. Notes
+        if (Array.isArray(data.notes)) {
+          state.notes = data.notes.map(n => ({
+            id: n.id || ("note_" + Date.now() + "_" + Math.random().toString(36).substr(2, 4)),
+            text: n.text || "",
+            time: Number(n.time) || 0,
+            voltage: Number(n.voltage) || 0,
+            targetChannel: Number(n.targetChannel) || 1,
+            color: n.color || "#fbbf24",
+            relX: n.relX !== undefined ? Number(n.relX) : 25,
+            relY: n.relY !== undefined ? Number(n.relY) : -40
+          }));
+        } else {
+          state.notes = [];
+        }
+
+        updateCursorDropdownOptions();
+        updateOSDChannels();
+        redraw();
+        showToast("Session and measurements restored successfully!");
+      } catch (err) {
+        console.error("Failed to import session JSON:", err);
+        alert("Error importing session JSON: " + err.message);
+      }
+    }
+
+    function showToast(msg, duration = 3000) {
+      let toast = document.getElementById("toastNotification");
+      if (!toast) {
+        toast = document.createElement("div");
+        toast.id = "toastNotification";
+        toast.className = "toast-notification";
+        document.body.appendChild(toast);
+      }
+      toast.innerHTML = `
+        <svg width="15" height="15" fill="none" stroke="#38bdf8" stroke-width="2.2" viewBox="0 0 24 24"><path d="M5 13l4 4L19 7"></path></svg>
+        <span>${msg}</span>
+      `;
+      toast.classList.add("show");
+      if (window._toastTimeout) clearTimeout(window._toastTimeout);
+      window._toastTimeout = setTimeout(() => {
+        toast.classList.remove("show");
+      }, duration);
     }
   </script>
 </body>
