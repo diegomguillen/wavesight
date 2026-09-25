@@ -918,7 +918,7 @@
         <div class="param-pill" id="cursorModeY" onclick="setCursorMode('Y')">Y</div>
         <div class="param-pill" id="cursorModeXY" onclick="setCursorMode('XY')">XY</div>
       </div>
-      <select id="selCursorYTarget" class="select hidden" style="width:auto; padding:3px 8px; font-size:11px; background:#1b283d; border-color:#38bdf8;" onchange="onCursorTargetChannelChange(this.value)">
+      <select id="selCursorYTarget" class="select" style="width:auto; padding:3px 8px; font-size:11px; background:#1b283d; border-color:#38bdf8; transition: border-color 0.2s, box-shadow 0.2s;" onchange="onCursorTargetChannelChange(this.value)" title="Canal activo (se sincroniza automáticamente al hacer snap en un trazo)">
         <option value="1">CH1 (Yellow)</option>
         <option value="2">CH2 (Cyan)</option>
         <option value="3">CH3 (Magenta)</option>
@@ -1204,6 +1204,16 @@
               <option value="1e-3">1.0 ms/div</option>
               <option value="2e-3">2.0 ms/div</option>
               <option value="5e-3">5.0 ms/div</option>
+              <option value="1e-2">10 ms/div</option>
+              <option value="2e-2">20 ms/div</option>
+              <option value="5e-2">50 ms/div</option>
+              <option value="1e-1">100 ms/div</option>
+              <option value="2e-1">200 ms/div</option>
+              <option value="5e-1">500 ms/div</option>
+              <option value="1">1.0 s/div</option>
+              <option value="2">2.0 s/div</option>
+              <option value="5">5.0 s/div</option>
+              <option value="10">10 s/div</option>
             </select>
           </div>
           <div class="control-group">
@@ -1286,6 +1296,7 @@
           vOffset: 0.0, // Predefined 0.0V offset
           tOffset: 0.0, // Individual channel X offset (time delay)
           invert: false,
+          isDigital: false,
           filter: 0, // 0: Raw, 5: Low, 11: Med, 25: High, 51: Max
           data: null,
           filteredVoltage: null,
@@ -1299,6 +1310,7 @@
           vOffset: 0.0, // Predefined 0.0V offset
           tOffset: 0.0, // Individual channel X offset (time delay)
           invert: false,
+          isDigital: false,
           filter: 0,
           data: null,
           filteredVoltage: null,
@@ -1312,6 +1324,7 @@
           vOffset: 0.0,
           tOffset: 0.0,
           invert: false,
+          isDigital: false,
           filter: 0,
           data: null,
           filteredVoltage: null,
@@ -1325,6 +1338,7 @@
           vOffset: 0.0,
           tOffset: 0.0,
           invert: false,
+          isDigital: false,
           filter: 0,
           data: null,
           filteredVoltage: null,
@@ -1410,6 +1424,9 @@
               <span id="ch-title-${ch.id}" style="cursor:pointer;" onclick="promptChannelAlias(${ch.id})" title="Click to edit alias">${ch.alias ? `${ch.name} [${ch.alias}]` : ch.name}</span>
             </div>
             <div style="display:flex; align-items:center; gap:5px;">
+              <button class="btn" id="btnDigital-ch${ch.id}" onclick="toggleDigitalMode(${ch.id})" style="padding:2px 5px; font-size:9px; ${ch.isDigital ? 'border-color:#38bdf8; color:#38bdf8;' : 'opacity:0.6;'}" title="Alternar modo Digital (Escalón) o Analógico">
+                ${ch.isDigital ? 'DIGITAL' : 'ANALOG'}
+              </button>
               <input type="file" id="fileInput-ch${ch.id}" accept=".csv,.txt" style="display:none" onchange="handleSingleChannelFile(${ch.id}, this)">
               <button class="btn" style="padding:2px 6px; font-size:10px" onclick="document.getElementById('fileInput-ch${ch.id}').click()" title="Load CSV for ${ch.name}">
                 CSV
@@ -1730,8 +1747,9 @@
           }
         }
 
-        if (!forcedChId && parsed.channels[1]) {
+        if (parsed.channels[1]) {
           // Multi-channel CSV with multiple columns: load all active channels
+          const loadedChs = [];
           for (let i = 0; i < 4; i++) {
             if (parsed.channels[i] && parsed.channels[i].length > 0) {
               const ch = state.channels[i];
@@ -1739,18 +1757,130 @@
               ch.fileName = `${file.name} (CH${i + 1})`;
               ch.enabled = true;
               ch.filteredVoltage = ch.filter > 0 ? computeFilteredVoltage(ch.data.voltage, ch.filter) : null;
-              updateChannelUI(i + 1);
+
+              // Extract alias from header (e.g. "CH 1 DO-SDO" -> "DO-SDO")
+              if (parsed.headers && parsed.headers[i + 1]) {
+                const rawH = parsed.headers[i + 1];
+                const alias = rawH.replace(/^CH\s*\d+\s*[-_:]?\s*/i, "").trim();
+                const lowerA = alias.toLowerCase();
+                if (alias && lowerA !== `ch ${i + 1}` && lowerA !== `ch${i + 1}`) {
+                  ch.alias = alias;
+                }
+              }
+
+              // Detect if digital logic values (0 and 1)
+              let isDigital = true;
+              const sampleLen = Math.min(300, ch.data.voltage.length);
+              for (let k = 0; k < sampleLen; k++) {
+                const val = ch.data.voltage[k];
+                if (val !== 0 && val !== 1 && Math.abs(val) > 0.05 && Math.abs(val - 1) > 0.05) {
+                  isDigital = false;
+                  break;
+                }
+              }
+              ch.isDigital = isDigital;
+              loadedChs.push(ch);
               calculateChannelMetrics(ch);
             }
           }
+
+          // If multiple channels are digital logic, arrange cleanly in vertical cascade
+          if (loadedChs.length > 1 && loadedChs.every(c => c.isDigital)) {
+            const offsets = [2.0, 0.5, -1.5, -3.0];
+            loadedChs.forEach((c, idx) => {
+              c.vScale = 1.0;
+              c.vOffset = offsets[idx % offsets.length];
+              updateChannelUI(c.id);
+              updateMeasUI(c.id);
+            });
+          } else {
+            loadedChs.forEach(c => {
+              updateChannelUI(c.id);
+              updateMeasUI(c.id);
+            });
+          }
+
+          // Auto-adjust timebase to fit capture duration
+          if (parsed.time && parsed.time.length > 1) {
+            const tMin = parsed.time[0];
+            const tMax = parsed.time[parsed.time.length - 1];
+            const duration = tMax - tMin;
+            if (duration > 0) {
+              const divs = state.timebase.divisions || 10;
+              const targetScale = duration / divs;
+              const stdScales = [
+                1e-7, 2e-7, 5e-7,
+                1e-6, 2e-6, 5e-6,
+                1e-5, 2e-5, 5e-5,
+                1e-4, 2e-4, 5e-4,
+                1e-3, 2e-3, 5e-3,
+                1e-2, 2e-2, 5e-2,
+                1e-1, 2e-1, 5e-1,
+                1.0, 2.0, 5.0, 10.0
+              ];
+              let chosen = stdScales[0];
+              for (let s of stdScales) {
+                if (s >= targetScale) {
+                  chosen = s;
+                  break;
+                }
+                chosen = s;
+              }
+              state.timebase.scale = chosen;
+              state.timebase.offset = (tMin + tMax) / 2;
+              const totalSpan = chosen * divs;
+              state.cursors.x1 = state.timebase.offset - totalSpan * 0.25;
+              state.cursors.x2 = state.timebase.offset + totalSpan * 0.25;
+
+              const selScale = document.getElementById("selTimeScale");
+              if (selScale) selScale.value = chosen.toString();
+              const lblScale = document.getElementById("lblTimeScale");
+              if (lblScale) lblScale.textContent = `${formatTime(chosen)}/div`;
+              const numOffset = document.getElementById("numTimeOffset");
+              if (numOffset) numOffset.value = formatTime(state.timebase.offset);
+              const osdTB = document.getElementById("osdTB");
+              if (osdTB) osdTB.textContent = `TB: ${formatTime(chosen)}`;
+            }
+          }
+          updateCursorDropdownOptions();
+          updateOSDChannels();
+          redraw();
+          showToast(`¡Cargados ${loadedChs.length} canales (${loadedChs.map(c => c.alias || c.name).join(', ')})!`);
+          return;
         } else {
           const ch = state.channels[targetId - 1];
           ch.data = { time: parsed.time, voltage: parsed.channels[0] };
           ch.fileName = `CH${targetId} (${file.name})`;
           ch.enabled = true;
           ch.filteredVoltage = ch.filter > 0 ? computeFilteredVoltage(ch.data.voltage, ch.filter) : null;
+
+          // Extract alias from single-channel header if present
+          if (parsed.headers && parsed.headers[1]) {
+            const rawH = parsed.headers[1];
+            const alias = rawH.replace(/^CH\s*\d+\s*[-_:]?\s*/i, "").trim();
+            const lowerA = alias.toLowerCase();
+            if (alias && lowerA !== `ch ${targetId}` && lowerA !== `ch${targetId}`) {
+              ch.alias = alias;
+            }
+          }
+
+          // Check if single channel is digital
+          let isDigital = true;
+          const sampleLen = Math.min(300, ch.data.voltage.length);
+          for (let k = 0; k < sampleLen; k++) {
+            const val = ch.data.voltage[k];
+            if (val !== 0 && val !== 1 && Math.abs(val) > 0.05 && Math.abs(val - 1) > 0.05) {
+              isDigital = false;
+              break;
+            }
+          }
+          ch.isDigital = isDigital;
+
           updateChannelUI(targetId);
+          updateMeasUI(targetId);
           calculateChannelMetrics(ch);
+          updateCursorDropdownOptions();
+          updateOSDChannels();
         }
         redraw();
         showToast(`¡CH${targetId} cargado y mostrado en pantalla!`);
@@ -2158,6 +2288,16 @@
       } else {
         ctx.beginPath();
         let started = false;
+        let prevPy = null;
+
+        // For digital signals, start at the left edge using level before idxStart
+        if (ch.isDigital && idxStart > 0) {
+          const initV = volts[idxStart - 1] * probe * invert;
+          const initPy = midY - (initV + vOffset) * pixelsPerVolt;
+          ctx.moveTo(0, initPy);
+          started = true;
+          prevPy = initPy;
+        }
 
         for (let i = idxStart; i <= idxEnd; i += step) {
           const t = times[i] + tOffset;
@@ -2169,9 +2309,22 @@
             ctx.moveTo(px, py);
             started = true;
           } else {
-            ctx.lineTo(px, py);
+            if (ch.isDigital && prevPy !== null) {
+              // Digital logic square step transition
+              ctx.lineTo(px, prevPy);
+              ctx.lineTo(px, py);
+            } else {
+              ctx.lineTo(px, py);
+            }
           }
+          prevPy = py;
         }
+
+        // Extend digital signal across to right edge of canvas
+        if (ch.isDigital && started && prevPy !== null) {
+          ctx.lineTo(w, prevPy);
+        }
+
         ctx.stroke();
       }
 
@@ -2277,20 +2430,37 @@
         ctx.setLineDash([5, 4]);
         ctx.strokeStyle = "#ff9100";
 
-        [ { pix: x1Pix, tag: "X1" }, { pix: x2Pix, tag: "X2" } ].forEach(c => {
-          if (c.pix >= 0 && c.pix <= w) {
-            ctx.beginPath();
-            ctx.moveTo(c.pix, 0);
-            ctx.lineTo(c.pix, h);
-            ctx.stroke();
+        [ { pix: x1Pix, tag: "X1", val: state.cursors.x1 }, 
+          { pix: x2Pix, tag: "X2", val: state.cursors.x2 } ].forEach(c => {
+          // Clamp drawing position so cursor lines and badges are ALWAYS visible and draggable
+          const isClampedLeft = c.pix < 14;
+          const isClampedRight = c.pix > w - 14;
+          const isClamped = isClampedLeft || isClampedRight;
+          const drawX = Math.max(14, Math.min(w - 14, c.pix));
 
-            ctx.fillStyle = "#ff9100";
-            ctx.fillRect(c.pix - 12, 0, 24, 16);
-            ctx.fillStyle = "#000";
-            ctx.font = "bold 9.5px monospace";
-            ctx.textAlign = "center";
-            ctx.fillText(c.tag, c.pix, 11);
-          }
+          ctx.beginPath();
+          ctx.moveTo(drawX, 0);
+          ctx.lineTo(drawX, h);
+          ctx.stroke();
+
+          // Header badge
+          ctx.fillStyle = isClamped ? "#b45309" : "#ff9100";
+          ctx.fillRect(drawX - 16, 0, 32, 16);
+          ctx.fillStyle = "#000";
+          ctx.font = "bold 9.5px monospace";
+          ctx.textAlign = "center";
+          const label = isClampedLeft ? `◀ ${c.tag}` : (isClampedRight ? `${c.tag} ▶` : c.tag);
+          ctx.fillText(label, drawX, 11);
+
+          // Footer time badge
+          ctx.fillStyle = isClamped ? "rgba(180, 83, 9, 0.92)" : "rgba(255, 145, 0, 0.92)";
+          const timeText = formatTime(c.val);
+          ctx.font = "bold 9px monospace";
+          const textW = ctx.measureText(timeText).width;
+          const bgW = textW + 8;
+          ctx.fillRect(Math.max(2, Math.min(w - bgW - 2, drawX - bgW / 2)), h - 16, bgW, 16);
+          ctx.fillStyle = "#000";
+          ctx.fillText(timeText, Math.max(bgW / 2 + 2, Math.min(w - bgW / 2 - 2, drawX)), h - 4);
         });
 
         const dt = Math.abs(state.cursors.x2 - state.cursors.x1);
@@ -2423,13 +2593,15 @@
       // 1. Draw saved lines
       if (state.lines && state.lines.length > 0) {
         state.lines.forEach(line => {
-          const ch = state.channels[(line.targetChannel || 1) - 1] || state.channels[0];
-          const pixelsPerVolt = (h / state.vDivisions) / ch.vScale;
+          const ch1 = state.channels[(line.ch1 || line.targetChannel || 1) - 1] || state.channels[0];
+          const ch2 = state.channels[(line.ch2 || line.targetChannel || 1) - 1] || state.channels[0];
+          const ppv1 = (h / state.vDivisions) / ch1.vScale;
+          const ppv2 = (h / state.vDivisions) / ch2.vScale;
 
           const x1 = (line.t1 - tStart) * timeToPixel;
-          const y1 = midY - (line.v1 + ch.vOffset) * pixelsPerVolt;
+          const y1 = midY - (line.v1 + ch1.vOffset) * ppv1;
           const x2 = (line.t2 - tStart) * timeToPixel;
-          const y2 = midY - (line.v2 + ch.vOffset) * pixelsPerVolt;
+          const y2 = midY - (line.v2 + ch2.vOffset) * ppv2;
 
           line._x1 = x1;
           line._y1 = y1;
@@ -2570,10 +2742,15 @@
         const ch = state.channels[dl.targetChannel - 1] || state.channels[0];
         const pixelsPerVolt = (h / state.vDivisions) / ch.vScale;
         const tStart2 = tb.offset - totalSpan / 2;
-        const t1 = tStart2 + (x1 / w) * totalSpan;
-        const t2 = tStart2 + (x2 / w) * totalSpan;
-        const v1 = (midY - y1) / pixelsPerVolt - ch.vOffset;
-        const v2 = (midY - y2) / pixelsPerVolt - ch.vOffset;
+        const t1 = dl.startT !== undefined ? dl.startT : (tStart2 + (x1 / w) * totalSpan);
+        let t2 = tStart2 + (x2 / w) * totalSpan;
+        let v1 = dl.startV !== undefined ? dl.startV : ((midY - y1) / pixelsPerVolt - ch.vOffset);
+        let v2 = (midY - y2) / pixelsPerVolt - ch.vOffset;
+
+        if (state.snappedIntersection && state.snappedIntersection.time !== undefined) {
+          t2 = state.snappedIntersection.time;
+          v2 = state.snappedIntersection.voltage;
+        }
 
         const dt = Math.abs(t2 - t1);
         const dv = Math.abs(v2 - v1);
@@ -2922,7 +3099,6 @@
       if (mode === "off") {
         document.getElementById("cursorModeOff").classList.add("active");
         label.textContent = "OFF";
-        if (selTarget) selTarget.classList.add("hidden");
       } else {
         if (mode === "X") {
           document.getElementById("cursorModeX").classList.add("active");
@@ -2935,10 +3111,31 @@
           label.textContent = "X & Y (BOTH)";
         }
 
-        // Keep channel target selector visible for X, Y, and XY modes
+        // Keep channel target selector updated
         if (selTarget) {
-          selTarget.classList.remove("hidden");
           selTarget.value = String(state.cursors.targetChannel || 1);
+          const ch0 = state.channels[(state.cursors.targetChannel || 1) - 1];
+          if (ch0) {
+            selTarget.style.borderColor = ch0.color || "#38bdf8";
+            selTarget.style.boxShadow = `0 0 8px ${ch0.color}55`;
+          }
+        }
+
+        // Ensure X cursors are positioned within visible screen time window
+        if (mode === "X" || mode === "XY") {
+          const tb = state.timebase;
+          const totalSpan = tb.scale * tb.divisions;
+          const tStart = tb.offset - totalSpan / 2;
+          const tEnd = tb.offset + totalSpan / 2;
+
+          const isX1Off = isNaN(state.cursors.x1) || state.cursors.x1 < tStart || state.cursors.x1 > tEnd;
+          const isX2Off = isNaN(state.cursors.x2) || state.cursors.x2 < tStart || state.cursors.x2 > tEnd;
+          const isTooClose = Math.abs(state.cursors.x2 - state.cursors.x1) < (totalSpan * 0.02);
+
+          if (isX1Off || isX2Off || isTooClose) {
+            state.cursors.x1 = tb.offset - totalSpan * 0.25;
+            state.cursors.x2 = tb.offset + totalSpan * 0.25;
+          }
         }
 
         const ch = state.channels[(state.cursors.targetChannel || 1) - 1];
@@ -2959,8 +3156,26 @@
       redraw();
     }
 
+    function setNavbarTargetChannel(channelId) {
+      if (!channelId) return;
+      const idNum = parseInt(channelId);
+      if (isNaN(idNum) || idNum < 1 || idNum > state.channels.length) return;
+
+      state.cursors.targetChannel = idNum;
+      const sel = document.getElementById("selCursorYTarget");
+      if (sel && sel.value !== String(idNum)) {
+        sel.value = String(idNum);
+      }
+      const targetCh = state.channels[idNum - 1];
+      if (sel && targetCh) {
+        sel.style.borderColor = targetCh.color || "#38bdf8";
+        sel.style.boxShadow = `0 0 8px ${targetCh.color}55`;
+      }
+    }
+
     function onCursorTargetChannelChange(val) {
-      state.cursors.targetChannel = parseInt(val);
+      const idNum = parseInt(val);
+      setNavbarTargetChannel(idNum);
       const ch = state.channels[state.cursors.targetChannel - 1];
       if (ch) {
         // Automatically enable target channel and update UI
@@ -3029,11 +3244,52 @@
       });
 
       if (hasData && tMax > tMin) {
-        state.timebase.offset = 0.0;
-        state.timebase.scale = 0.0005; // 500 µs/div
-        document.getElementById("selTimeScale").value = "5e-4";
-        document.getElementById("lblTimeScale").textContent = "500 µs/div";
-        document.getElementById("numTimeOffset").value = "0.00 ms";
+        const totalDuration = tMax - tMin;
+        const divs = state.timebase.divisions || 10;
+        const targetScale = totalDuration / divs;
+        const stdScales = [
+          1e-7, 2e-7, 5e-7,
+          1e-6, 2e-6, 5e-6,
+          1e-5, 2e-5, 5e-5,
+          1e-4, 2e-4, 5e-4,
+          1e-3, 2e-3, 5e-3,
+          1e-2, 2e-2, 5e-2,
+          1e-1, 2e-1, 5e-1,
+          1.0, 2.0, 5.0, 10.0
+        ];
+        let chosen = stdScales[0];
+        for (let s of stdScales) {
+          if (s >= targetScale) {
+            chosen = s;
+            break;
+          }
+          chosen = s;
+        }
+        state.timebase.scale = chosen;
+        state.timebase.offset = (tMin + tMax) / 2;
+        const totalSpan = chosen * divs;
+        state.cursors.x1 = state.timebase.offset - totalSpan * 0.25;
+        state.cursors.x2 = state.timebase.offset + totalSpan * 0.25;
+
+        const selScale = document.getElementById("selTimeScale");
+        if (selScale) selScale.value = chosen.toString();
+        const lblScale = document.getElementById("lblTimeScale");
+        if (lblScale) lblScale.textContent = `${formatTime(chosen)}/div`;
+        const numOffset = document.getElementById("numTimeOffset");
+        if (numOffset) numOffset.value = formatTime(state.timebase.offset);
+        const osdTB = document.getElementById("osdTB");
+        if (osdTB) osdTB.textContent = `TB: ${formatTime(chosen)}`;
+
+        // Cascade stacking if digital
+        const enabledChs = state.channels.filter(c => c.enabled && c.data);
+        if (enabledChs.length > 1 && enabledChs.every(c => c.isDigital)) {
+          const offsets = [2.0, 0.5, -1.5, -3.0];
+          enabledChs.forEach((c, idx) => {
+            c.vScale = 1.0;
+            c.vOffset = offsets[idx % offsets.length];
+            updateChannelUI(c.id);
+          });
+        }
       }
       redraw();
     }
@@ -3070,6 +3326,14 @@
       if (voffEl) voffEl.value = `${ch.vOffset.toFixed(2)} V`;
       const toffEl = document.getElementById(`toffset-ch-${ch.id}`);
       if (toffEl) toffEl.value = formatTime(ch.tOffset || 0.0);
+
+      const digBtn = document.getElementById(`btnDigital-ch${ch.id}`);
+      if (digBtn) {
+        digBtn.textContent = ch.isDigital ? "DIGITAL" : "ANALOG";
+        digBtn.style.opacity = ch.isDigital ? "1" : "0.55";
+        digBtn.style.borderColor = ch.isDigital ? "#38bdf8" : "";
+        digBtn.style.color = ch.isDigital ? "#38bdf8" : "";
+      }
 
       const probeEl = document.getElementById(`probe-ch-${ch.id}`);
       if (probeEl) probeEl.value = ch.probe.toString();
@@ -3110,17 +3374,31 @@
       }
     }
 
+    function toggleDigitalMode(chId) {
+      const ch = state.channels[chId - 1];
+      if (!ch) return;
+      ch.isDigital = !ch.isDigital;
+      updateChannelUI(chId);
+      redraw();
+      showToast(`${ch.name}: modo ${ch.isDigital ? 'Digital (Escalón)' : 'Analógico (Continuo)'}`);
+    }
+
     function updateCursorDropdownOptions() {
       const selTarget = document.getElementById("selCursorYTarget");
       if (!selTarget) return;
-      const currentVal = selTarget.value;
+      const currentVal = selTarget.value || String(state.cursors.targetChannel || 1);
       selTarget.innerHTML = `
-        <option value="1">Measure ${getChannelDisplayName(state.channels[0])} (Yellow)</option>
-        <option value="2">Measure ${getChannelDisplayName(state.channels[1])} (Cyan)</option>
-        <option value="3">Measure ${getChannelDisplayName(state.channels[2])} (Magenta)</option>
-        <option value="4">Measure ${getChannelDisplayName(state.channels[3])} (Green)</option>
+        <option value="1">${getChannelDisplayName(state.channels[0])} (Yellow)</option>
+        <option value="2">${getChannelDisplayName(state.channels[1])} (Cyan)</option>
+        <option value="3">${getChannelDisplayName(state.channels[2])} (Magenta)</option>
+        <option value="4">${getChannelDisplayName(state.channels[3])} (Green)</option>
       `;
       selTarget.value = currentVal;
+      const targetCh = state.channels[parseInt(currentVal) - 1];
+      if (targetCh) {
+        selTarget.style.borderColor = targetCh.color || "#38bdf8";
+        selTarget.style.boxShadow = `0 0 8px ${targetCh.color}55`;
+      }
     }
 
     function updateOSDChannels() {
@@ -3256,6 +3534,7 @@
         if (e.key === "Escape") {
           if (state.drawingLine) {
             state.drawingLine = null;
+            state.snappedIntersection = null;
             redraw();
             return;
           }
@@ -3323,27 +3602,48 @@
           }
         }
 
-        // 2. Start drawing line with right-click drag
+        // 2. Start drawing line with right-click drag (snap to signal trace or edge if close)
+        const snap = findNearestTraceSnap(mouseX, mouseY, w, h, 24);
+
         const tb = state.timebase;
         const totalSpan = tb.scale * tb.divisions;
         const tStart = tb.offset - totalSpan / 2;
-        const t = tStart + (mouseX / w) * totalSpan;
 
-        const targetChId = state.cursors.targetChannel || 1;
-        const ch = state.channels[targetChId - 1] || state.channels[0];
+        let startX = mouseX;
+        let startY = mouseY;
+        let startT = tStart + (mouseX / w) * totalSpan;
+
+        let targetChId = state.cursors.targetChannel || 1;
+        let ch = state.channels[targetChId - 1] || state.channels[0];
         const midY = h / 2;
-        const pixelsPerVolt = (h / state.vDivisions) / ch.vScale;
-        const v = (midY - mouseY) / pixelsPerVolt - ch.vOffset;
+        let pixelsPerVolt = (h / state.vDivisions) / ch.vScale;
+        let startV = (midY - mouseY) / pixelsPerVolt - ch.vOffset;
+        let strokeColor = ch.color || "#00e5ff";
+
+        if (snap) {
+          startX = snap.xPix;
+          startY = snap.yPix;
+          startT = snap.time;
+          startV = snap.voltage;
+          if (snap.channelId) {
+            targetChId = snap.channelId;
+            ch = state.channels[targetChId - 1] || ch;
+            strokeColor = snap.color || ch.color || strokeColor;
+            setNavbarTargetChannel(snap.channelId);
+          }
+          state.snappedIntersection = snap;
+        }
 
         state.drawingLine = {
-          startX: mouseX,
-          startY: mouseY,
-          currentX: mouseX,
-          currentY: mouseY,
-          startT: t,
-          startV: v,
+          startX: startX,
+          startY: startY,
+          currentX: startX,
+          currentY: startY,
+          startT: startT,
+          startV: startV,
           targetChannel: targetChId,
-          color: ch.color || "#00e5ff",
+          startChannel: targetChId,
+          color: strokeColor,
           moved: false
         };
         redraw();
@@ -3418,9 +3718,11 @@
         const tStart = tb.offset - totalSpan / 2;
         const x1Pix = (state.cursors.x1 - tStart) * (w / totalSpan);
         const x2Pix = (state.cursors.x2 - tStart) * (w / totalSpan);
+        const drawX1 = Math.max(14, Math.min(w - 14, x1Pix));
+        const drawX2 = Math.max(14, Math.min(w - 14, x2Pix));
 
-        const d1 = Math.abs(mouseX - x1Pix);
-        const d2 = Math.abs(mouseX - x2Pix);
+        const d1 = Math.abs(mouseX - drawX1);
+        const d2 = Math.abs(mouseX - drawX2);
         if (d1 < closestDist) { closestDist = d1; targetDrag = "x1"; }
         if (d2 < closestDist) { closestDist = d2; targetDrag = "x2"; }
       }
@@ -3432,9 +3734,11 @@
         const pixelsPerVolt = (h / state.vDivisions) / ch.vScale;
         const y1Pix = midY - (state.cursors.y1 + ch.vOffset) * pixelsPerVolt;
         const y2Pix = midY - (state.cursors.y2 + ch.vOffset) * pixelsPerVolt;
+        const drawY1 = Math.max(8, Math.min(h - 8, y1Pix));
+        const drawY2 = Math.max(8, Math.min(h - 8, y2Pix));
 
-        const dy1 = Math.abs(mouseY - y1Pix);
-        const dy2 = Math.abs(mouseY - y2Pix);
+        const dy1 = Math.abs(mouseY - drawY1);
+        const dy2 = Math.abs(mouseY - drawY2);
         if (dy1 < closestDist) { closestDist = dy1; targetDrag = "y1"; }
         if (dy2 < closestDist) { closestDist = dy2; targetDrag = "y2"; }
       }
@@ -3479,15 +3783,42 @@
       if (state.drawingLine) {
         let curX = mouseX;
         let curY = mouseY;
-        if (e.shiftKey) {
-          const dx = Math.abs(mouseX - state.drawingLine.startX);
-          const dy = Math.abs(mouseY - state.drawingLine.startY);
-          if (dx >= dy) {
-            curY = state.drawingLine.startY; // Lock horizontal
+        const snap = findNearestTraceSnap(mouseX, mouseY, w, h, 24);
+
+        if (snap) {
+          state.snappedIntersection = snap;
+          if (snap.channelId) {
+            setNavbarTargetChannel(snap.channelId);
+          }
+          if (e.shiftKey) {
+            const dx = Math.abs(mouseX - state.drawingLine.startX);
+            const dy = Math.abs(mouseY - state.drawingLine.startY);
+            if (dx >= dy) {
+              // Lock horizontal, snap X to transition edge
+              curX = snap.xPix;
+              curY = state.drawingLine.startY;
+            } else {
+              // Lock vertical, snap Y to level
+              curX = state.drawingLine.startX;
+              curY = snap.yPix;
+            }
           } else {
-            curX = state.drawingLine.startX; // Lock vertical
+            curX = snap.xPix;
+            curY = snap.yPix;
+          }
+        } else {
+          state.snappedIntersection = null;
+          if (e.shiftKey) {
+            const dx = Math.abs(mouseX - state.drawingLine.startX);
+            const dy = Math.abs(mouseY - state.drawingLine.startY);
+            if (dx >= dy) {
+              curY = state.drawingLine.startY; // Lock horizontal
+            } else {
+              curX = state.drawingLine.startX; // Lock vertical
+            }
           }
         }
+
         state.drawingLine.currentX = curX;
         state.drawingLine.currentY = curY;
         if (Math.hypot(curX - state.drawingLine.startX, curY - state.drawingLine.startY) > 4) {
@@ -3566,7 +3897,7 @@
         let nearX = false;
         let nearY = false;
 
-        // Intersection magnetic snap detection
+        // Intersection & Trace magnetic snap detection
         let snapped = null;
         if (showX && showY) {
           const intersections = getCursorIntersections(w, h);
@@ -3581,10 +3912,18 @@
             }
           });
         }
+        // If no cursor intersection snapped, check signal trace and logic transition edges
+        if (!snapped) {
+          snapped = findNearestTraceSnap(mouseX, mouseY, w, h, 20);
+        }
+
+        if (snapped && snapped.channelId) {
+          setNavbarTargetChannel(snapped.channelId);
+        }
 
         const prevSnap = state.snappedIntersection;
         state.snappedIntersection = snapped;
-        if (Boolean(prevSnap) !== Boolean(snapped) || (prevSnap && snapped && (prevSnap.xTag !== snapped.xTag || prevSnap.yTag !== snapped.yTag))) {
+        if (Boolean(prevSnap) !== Boolean(snapped) || (prevSnap && snapped && (Math.abs(prevSnap.xPix - snapped.xPix) > 0.5 || Math.abs(prevSnap.yPix - snapped.yPix) > 0.5))) {
           redraw();
         }
 
@@ -3594,7 +3933,9 @@
           const tStart = tb.offset - totalSpan / 2;
           const x1Pix = (state.cursors.x1 - tStart) * (w / totalSpan);
           const x2Pix = (state.cursors.x2 - tStart) * (w / totalSpan);
-          if (Math.abs(mouseX - x1Pix) < 16 || Math.abs(mouseX - x2Pix) < 16) {
+          const drawX1 = Math.max(14, Math.min(w - 14, x1Pix));
+          const drawX2 = Math.max(14, Math.min(w - 14, x2Pix));
+          if (Math.abs(mouseX - drawX1) < 16 || Math.abs(mouseX - drawX2) < 16) {
             nearX = true;
           }
         }
@@ -3604,7 +3945,9 @@
           const pixelsPerVolt = (h / state.vDivisions) / ch.vScale;
           const y1Pix = midY - (state.cursors.y1 + ch.vOffset) * pixelsPerVolt;
           const y2Pix = midY - (state.cursors.y2 + ch.vOffset) * pixelsPerVolt;
-          if (Math.abs(mouseY - y1Pix) < 16 || Math.abs(mouseY - y2Pix) < 16) {
+          const drawY1 = Math.max(8, Math.min(h - 8, y1Pix));
+          const drawY2 = Math.max(8, Math.min(h - 8, y2Pix));
+          if (Math.abs(mouseY - drawY1) < 16 || Math.abs(mouseY - drawY2) < 16) {
             nearY = true;
           }
         }
@@ -3661,14 +4004,27 @@
         const h = rect.height;
 
         if (dl.moved && movedDist > 6) {
-          const tb = state.timebase;
-          const totalSpan = tb.scale * tb.divisions;
-          const tStart = tb.offset - totalSpan / 2;
-          const tEnd = tStart + (dl.currentX / w) * totalSpan;
-          const ch = state.channels[dl.targetChannel - 1] || state.channels[0];
-          const midY = h / 2;
-          const pixelsPerVolt = (h / state.vDivisions) / ch.vScale;
-          const vEnd = (midY - dl.currentY) / pixelsPerVolt - ch.vOffset;
+          const snap = state.snappedIntersection || findNearestTraceSnap(dl.currentX, dl.currentY, w, h, 24);
+          let tEnd, vEnd;
+          let endChannel = dl.targetChannel;
+
+          if (snap) {
+            tEnd = snap.time;
+            vEnd = snap.voltage;
+            if (snap.channelId) {
+              endChannel = snap.channelId;
+              setNavbarTargetChannel(snap.channelId);
+            }
+          } else {
+            const tb = state.timebase;
+            const totalSpan = tb.scale * tb.divisions;
+            const tStart = tb.offset - totalSpan / 2;
+            tEnd = tStart + (dl.currentX / w) * totalSpan;
+            const ch = state.channels[dl.targetChannel - 1] || state.channels[0];
+            const midY = h / 2;
+            const pixelsPerVolt = (h / state.vDivisions) / ch.vScale;
+            vEnd = (midY - dl.currentY) / pixelsPerVolt - ch.vOffset;
+          }
 
           state.lines.push({
             id: Date.now() + Math.random(),
@@ -3676,6 +4032,8 @@
             v1: dl.startV,
             t2: tEnd,
             v2: vEnd,
+            ch1: dl.startChannel || dl.targetChannel,
+            ch2: endChannel,
             targetChannel: dl.targetChannel,
             color: dl.color || "#00e5ff"
           });
@@ -3699,6 +4057,7 @@
           }
         }
         state.drawingLine = null;
+        state.snappedIntersection = null;
         redraw();
         return;
       }
@@ -3736,7 +4095,7 @@
       e.preventDefault();
       const factor = e.deltaY < 0 ? 0.8 : 1.25;
       const newScale = state.timebase.scale * factor;
-      if (newScale >= 1e-7 && newScale <= 0.05) {
+      if (newScale >= 1e-7 && newScale <= 10.0) {
         state.timebase.scale = newScale;
         document.getElementById("lblTimeScale").textContent = `${formatTime(newScale)}/div`;
         document.getElementById("osdTB").textContent = `TB: ${formatTime(newScale)}`;
@@ -3959,17 +4318,7 @@
     }
 
     /* ==========================================================================
-       EXPORT FUNCTIONS
-       ========================================================================== */
-    function exportCanvasImage() {
-      const link = document.createElement("a");
-      link.download = `oscilloscope_capture_${Date.now()}.png`;
-      link.href = canvas.toDataURL("image/png");
-      link.click();
-    }
-
-    /* ==========================================================================
-       CURSOR INTERSECTIONS & SNAP INDICATOR
+       CURSOR INTERSECTIONS, TRACE MAGNETIC SNAP & SNAP INDICATOR
        ========================================================================== */
     function getCursorIntersections(w, h) {
       const showX = (state.cursors.mode === "X" || state.cursors.mode === "XY");
@@ -3991,11 +4340,245 @@
       const y2Pix = midY - (state.cursors.y2 + targetCh.vOffset) * pixelsPerVolt;
 
       return [
-        { xPix: x1Pix, yPix: y1Pix, time: state.cursors.x1, voltage: state.cursors.y1, xTag: "X1", yTag: "Y1", label: "X1 ∩ Y1" },
-        { xPix: x1Pix, yPix: y2Pix, time: state.cursors.x1, voltage: state.cursors.y2, xTag: "X1", yTag: "Y2", label: "X1 ∩ Y2" },
-        { xPix: x2Pix, yPix: y1Pix, time: state.cursors.x2, voltage: state.cursors.y1, xTag: "X2", yTag: "Y1", label: "X2 ∩ Y1" },
-        { xPix: x2Pix, yPix: y2Pix, time: state.cursors.x2, voltage: state.cursors.y2, xTag: "X2", yTag: "Y2", label: "X2 ∩ Y2" }
+        { xPix: x1Pix, yPix: y1Pix, time: state.cursors.x1, voltage: state.cursors.y1, xTag: "X1", yTag: "Y1", label: "X1 ∩ Y1", color: targetCh.color || "#38bdf8" },
+        { xPix: x1Pix, yPix: y2Pix, time: state.cursors.x1, voltage: state.cursors.y2, xTag: "X1", yTag: "Y2", label: "X1 ∩ Y2", color: targetCh.color || "#38bdf8" },
+        { xPix: x2Pix, yPix: y1Pix, time: state.cursors.x2, voltage: state.cursors.y1, xTag: "X2", yTag: "Y1", label: "X2 ∩ Y1", color: targetCh.color || "#38bdf8" },
+        { xPix: x2Pix, yPix: y2Pix, time: state.cursors.x2, voltage: state.cursors.y2, xTag: "X2", yTag: "Y2", label: "X2 ∩ Y2", color: targetCh.color || "#38bdf8" }
       ];
+    }
+
+    function findNearestTraceSnap(mouseX, mouseY, w, h, maxDistPx = 22) {
+      if (!state.channels || state.channels.length === 0) return null;
+
+      const tb = state.timebase;
+      const totalSpan = tb.scale * tb.divisions;
+      if (totalSpan <= 0 || w <= 0 || h <= 0) return null;
+
+      const tStart = tb.offset - totalSpan / 2;
+      const timeToPixel = w / totalSpan;
+      const midY = h / 2;
+
+      let bestSnap = null;
+      let bestDist = maxDistPx;
+
+      for (let chIdx = 0; chIdx < state.channels.length; chIdx++) {
+        const ch = state.channels[chIdx];
+        if (!ch.enabled || !ch.data || !ch.data.time || ch.data.time.length === 0) continue;
+
+        const times = ch.data.time;
+        const volts = (ch.filter > 0 && ch.filteredVoltage) ? ch.filteredVoltage : ch.data.voltage;
+        const n = times.length;
+        if (n === 0) continue;
+
+        const tOffset = ch.tOffset || 0.0;
+        const vOffset = ch.vOffset;
+        const probe = ch.probe || 1;
+        const invert = ch.invert ? -1 : 1;
+        const pixelsPerVolt = (h / state.vDivisions) / ch.vScale;
+
+        // Search window in time coordinates around mouseX
+        const tCenter = tStart + (mouseX / w) * totalSpan;
+        const tRadius = ((maxDistPx + 15) / w) * totalSpan;
+        const targetT1 = (tCenter - tRadius) - tOffset;
+        const targetT2 = (tCenter + tRadius) - tOffset;
+
+        // Binary search for sample bounds
+        let l = 0, r = n - 1, idxStart = 0;
+        while (l <= r) {
+          const m = (l + r) >> 1;
+          if (times[m] < targetT1) { idxStart = m; l = m + 1; }
+          else r = m - 1;
+        }
+
+        l = 0; r = n - 1; let idxEnd = n - 1;
+        while (l <= r) {
+          const m = (l + r) >> 1;
+          if (times[m] <= targetT2) { idxEnd = m; l = m + 1; }
+          else r = m - 1;
+        }
+
+        idxStart = Math.max(0, Math.min(n - 1, idxStart - 1));
+        idxEnd = Math.max(0, Math.min(n - 1, idxEnd + 1));
+        if (idxStart > idxEnd) {
+          const tmp = idxStart; idxStart = idxEnd; idxEnd = tmp;
+        }
+
+        const pointCount = idxEnd - idxStart;
+        const step = pointCount > 400 ? Math.ceil(pointCount / 400) : 1;
+
+        const chLabel = ch.alias ? `${ch.name} (${ch.alias})` : ch.name;
+
+        for (let i = idxStart; i <= idxEnd; i += step) {
+          const tCurr = times[i] + tOffset;
+          const vCurr = volts[i] * probe * invert;
+          const pxCurr = (tCurr - tStart) * timeToPixel;
+          const pyCurr = midY - (vCurr + vOffset) * pixelsPerVolt;
+
+          if (i > 0) {
+            const prevIdx = Math.max(0, i - step);
+            const tPrev = times[prevIdx] + tOffset;
+            const vPrev = volts[prevIdx] * probe * invert;
+            const pxPrev = (tPrev - tStart) * timeToPixel;
+            const pyPrev = midY - (vPrev + vOffset) * pixelsPerVolt;
+
+            if (ch.isDigital) {
+              // DIGITAL WAVEFORM:
+              // 1. Horizontal Level Segment: from pxPrev to pxCurr at height pyPrev
+              const minLevelX = Math.min(pxPrev, pxCurr);
+              const maxLevelX = Math.max(pxPrev, pxCurr);
+              if (mouseX >= minLevelX - 6 && mouseX <= maxLevelX + 6) {
+                const clampedX = Math.max(minLevelX, Math.min(maxLevelX, mouseX));
+                const dist = Math.hypot(mouseX - clampedX, mouseY - pyPrev);
+                if (dist < bestDist) {
+                  bestDist = dist;
+                  const snapT = tStart + (clampedX / w) * totalSpan;
+                  bestSnap = {
+                    xPix: clampedX,
+                    yPix: pyPrev,
+                    time: snapT,
+                    voltage: vPrev,
+                    channelId: ch.id,
+                    channelName: chLabel,
+                    color: ch.color || "#38bdf8",
+                    type: "level",
+                    label: `${chLabel} Nivel`,
+                    badgeText: `SNAP [${chLabel}]: t = ${formatTime(snapT)}, V = ${formatVoltage(vPrev)}`
+                  };
+                }
+              }
+
+              // 2. Vertical Transition Edge: at x = pxCurr, from pyPrev to pyCurr
+              const deltaV = vCurr - vPrev;
+              if (Math.abs(deltaV) > 0.02) {
+                const minY = Math.min(pyPrev, pyCurr);
+                const maxY = Math.max(pyPrev, pyCurr);
+                const isRising = deltaV > 0;
+                const edgeName = isRising ? "Flanco ↑" : "Flanco ↓";
+
+                const distX = Math.abs(mouseX - pxCurr);
+                if (distX <= maxDistPx + 6 && mouseY >= minY - 16 && mouseY <= maxY + 16) {
+                  const edgeMidY = (pyPrev + pyCurr) / 2;
+                  const cands = [
+                    { y: pyCurr, v: vCurr, tag: isRising ? "Alto" : "Bajo" },
+                    { y: pyPrev, v: vPrev, tag: isRising ? "Bajo" : "Alto" },
+                    { y: edgeMidY, v: (vPrev + vCurr) / 2, tag: "50%" }
+                  ];
+
+                  for (const cand of cands) {
+                    // Slight magnetic bonus (0.8 factor) for transitions
+                    const d = Math.hypot(mouseX - pxCurr, mouseY - cand.y) * 0.8;
+                    if (d < bestDist) {
+                      bestDist = d;
+                      bestSnap = {
+                        xPix: pxCurr,
+                        yPix: cand.y,
+                        time: tCurr,
+                        voltage: cand.v,
+                        channelId: ch.id,
+                        channelName: chLabel,
+                        color: ch.color || "#38bdf8",
+                        type: "edge",
+                        edgeType: isRising ? "rising" : "falling",
+                        label: `${chLabel} ${edgeName} (${cand.tag})`,
+                        badgeText: `SNAP [${chLabel} ${edgeName} ${cand.tag}]: t = ${formatTime(tCurr)}, V = ${formatVoltage(cand.v)}`
+                      };
+                    }
+                  }
+                }
+              }
+            } else {
+              // ANALOG CONTINUOUS WAVEFORM:
+              const segDx = pxCurr - pxPrev;
+              const segDy = pyCurr - pyPrev;
+              const lenSq = segDx * segDx + segDy * segDy;
+              let u = lenSq === 0 ? 0 : ((mouseX - pxPrev) * segDx + (mouseY - pyPrev) * segDy) / lenSq;
+              u = Math.max(0, Math.min(1, u));
+              const projX = pxPrev + u * segDx;
+              const projY = pyPrev + u * segDy;
+              const d = Math.hypot(mouseX - projX, mouseY - projY);
+              if (d < bestDist) {
+                bestDist = d;
+                const snapT = tPrev + u * (tCurr - tPrev);
+                const snapV = vPrev + u * (vCurr - vPrev);
+                bestSnap = {
+                  xPix: projX,
+                  yPix: projY,
+                  time: snapT,
+                  voltage: snapV,
+                  channelId: ch.id,
+                  channelName: chLabel,
+                  color: ch.color || "#38bdf8",
+                  type: "analog",
+                  label: `${chLabel}`,
+                  badgeText: `SNAP [${chLabel}]: t = ${formatTime(snapT)}, V = ${formatVoltage(snapV)}`
+                };
+              }
+            }
+          } else {
+            // First sample point check
+            const d = Math.hypot(mouseX - pxCurr, mouseY - pyCurr);
+            if (d < bestDist) {
+              bestDist = d;
+              bestSnap = {
+                xPix: pxCurr,
+                yPix: pyCurr,
+                time: tCurr,
+                voltage: vCurr,
+                channelId: ch.id,
+                channelName: chLabel,
+                color: ch.color || "#38bdf8",
+                type: "sample",
+                label: `${chLabel}`,
+                badgeText: `SNAP [${chLabel}]: t = ${formatTime(tCurr)}, V = ${formatVoltage(vCurr)}`
+              };
+            }
+          }
+        }
+
+        // Digital signal margin extensions (left and right of capture)
+        if (ch.isDigital) {
+          const vFirst = volts[0] * probe * invert;
+          const pyFirst = midY - (vFirst + vOffset) * pixelsPerVolt;
+          const pxFirst = (times[0] + tOffset - tStart) * timeToPixel;
+          if (mouseX < pxFirst && Math.hypot(mouseX - mouseX, mouseY - pyFirst) < bestDist) {
+            bestDist = Math.abs(mouseY - pyFirst);
+            const snapT = tStart + (mouseX / w) * totalSpan;
+            bestSnap = {
+              xPix: mouseX,
+              yPix: pyFirst,
+              time: snapT,
+              voltage: vFirst,
+              channelId: ch.id,
+              channelName: chLabel,
+              color: ch.color || "#38bdf8",
+              type: "level",
+              label: `${chLabel} Nivel`,
+              badgeText: `SNAP [${chLabel}]: t = ${formatTime(snapT)}, V = ${formatVoltage(vFirst)}`
+            };
+          }
+          const vLast = volts[n - 1] * probe * invert;
+          const pyLast = midY - (vLast + vOffset) * pixelsPerVolt;
+          const pxLast = (times[n - 1] + tOffset - tStart) * timeToPixel;
+          if (mouseX > pxLast && Math.hypot(mouseX - mouseX, mouseY - pyLast) < bestDist) {
+            bestDist = Math.abs(mouseY - pyLast);
+            const snapT = tStart + (mouseX / w) * totalSpan;
+            bestSnap = {
+              xPix: mouseX,
+              yPix: pyLast,
+              time: snapT,
+              voltage: vLast,
+              channelId: ch.id,
+              channelName: chLabel,
+              color: ch.color || "#38bdf8",
+              type: "level",
+              label: `${chLabel} Nivel`,
+              badgeText: `SNAP [${chLabel}]: t = ${formatTime(snapT)}, V = ${formatVoltage(vLast)}`
+            };
+          }
+        }
+      }
+
+      return bestSnap;
     }
 
     function drawSnapIndicator(w, h) {
@@ -4003,11 +4586,13 @@
       const snap = state.snappedIntersection;
       if (snap.xPix < 0 || snap.xPix > w || snap.yPix < 0 || snap.yPix > h) return;
 
+      const snapColor = snap.color || "#38bdf8";
+
       ctx.save();
       // Glowing outer magnetic ring
-      ctx.strokeStyle = "#38bdf8";
+      ctx.strokeStyle = snapColor;
       ctx.lineWidth = 2;
-      ctx.shadowColor = "#38bdf8";
+      ctx.shadowColor = snapColor;
       ctx.shadowBlur = 8;
       ctx.beginPath();
       ctx.arc(snap.xPix, snap.yPix, 10, 0, Math.PI * 2);
@@ -4033,8 +4618,14 @@
       ctx.arc(snap.xPix, snap.yPix, 2.5, 0, Math.PI * 2);
       ctx.fill();
 
-      // Floating badge with exact intersection coordinates
-      const badgeText = `SNAP [${snap.label}]: t = ${formatTime(snap.time)}, V = ${formatVoltage(snap.voltage)}`;
+      // Floating badge with exact intersection coordinates and live delta if drawing
+      let badgeText = snap.badgeText || `SNAP [${snap.label}]: t = ${formatTime(snap.time)}, V = ${formatVoltage(snap.voltage)}`;
+      if (state.drawingLine && snap.time !== undefined && state.drawingLine.startT !== undefined) {
+        const dt = Math.abs(snap.time - state.drawingLine.startT);
+        const freq = dt > 1e-12 ? (1 / dt) : 0;
+        badgeText += ` | Δt: ${formatTime(dt)}${freq > 0 && freq < 1e9 ? ' (' + formatFrequency(freq) + ')' : ''}`;
+      }
+
       ctx.font = "bold 10px monospace";
       const textWidth = ctx.measureText(badgeText).width;
       const badgeW = textWidth + 16;
@@ -4045,7 +4636,7 @@
       if (badgeY < 10) badgeY = snap.yPix + 14;
 
       ctx.fillStyle = "rgba(11, 17, 28, 0.94)";
-      ctx.strokeStyle = "#38bdf8";
+      ctx.strokeStyle = snapColor;
       ctx.lineWidth = 1;
       ctx.beginPath();
       if (ctx.roundRect) ctx.roundRect(badgeX, badgeY, badgeW, badgeH, 4);
@@ -4053,7 +4644,7 @@
       ctx.fill();
       ctx.stroke();
 
-      ctx.fillStyle = "#38bdf8";
+      ctx.fillStyle = snapColor;
       ctx.textAlign = "left";
       ctx.textBaseline = "middle";
       ctx.fillText(badgeText, badgeX + 8, badgeY + badgeH / 2);
@@ -4110,7 +4701,7 @@
        ========================================================================== */
     function exportCanvasImage() {
       const link = document.createElement("a");
-      link.download = `oscilloscope_capture_${Date.now()}.png`;
+      link.download = `wave_sight_capture_${Date.now()}.png`;
       link.href = canvas.toDataURL("image/png");
       link.click();
     }
@@ -4158,6 +4749,8 @@
           v1: l.v1,
           t2: l.t2,
           v2: l.v2,
+          ch1: l.ch1 || l.targetChannel || 1,
+          ch2: l.ch2 || l.targetChannel || 1,
           targetChannel: l.targetChannel,
           color: l.color,
           customText: l.customText || ""
@@ -4173,6 +4766,7 @@
           vOffset: ch.vOffset,
           tOffset: ch.tOffset || 0.0,
           invert: !!ch.invert,
+          isDigital: !!ch.isDigital,
           filter: ch.filter || 0,
           fileName: ch.fileName,
           metrics: ch.metrics ? { ...ch.metrics } : null,
@@ -4189,7 +4783,7 @@
       const now = new Date();
       const pad = (num) => String(num).padStart(2, "0");
       const dateStr = `${now.getFullYear()}${pad(now.getMonth()+1)}${pad(now.getDate())}_${pad(now.getHours())}${pad(now.getMinutes())}${pad(now.getSeconds())}`;
-      link.download = `oscilloscope_measurements_${dateStr}.json`;
+      link.download = `wave_sight_measuraments_${dateStr}.json`;
       link.href = URL.createObjectURL(blob);
       link.click();
       showToast("Measurements and workspace session exported (.json)");
@@ -4276,6 +4870,7 @@
             ch.vOffset = Number(inCh.vOffset) || 0.0;
             ch.tOffset = Number(inCh.tOffset) || 0.0;
             ch.invert = !!inCh.invert;
+            ch.isDigital = !!inCh.isDigital;
             ch.filter = Number(inCh.filter) || 0;
             ch.fileName = inCh.fileName || "Imported Data";
 
@@ -4345,6 +4940,8 @@
             v1: Number(l.v1) || 0,
             t2: Number(l.t2) || 0,
             v2: Number(l.v2) || 0,
+            ch1: Number(l.ch1) || Number(l.targetChannel) || 1,
+            ch2: Number(l.ch2) || Number(l.targetChannel) || 1,
             targetChannel: Number(l.targetChannel) || 1,
             color: l.color || "#00e5ff",
             customText: l.customText || ""
