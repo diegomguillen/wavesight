@@ -930,6 +930,11 @@
         Note
       </button>
 
+      <button class="btn" id="btnClearLines" onclick="clearDottedLines()" title="Líneas punteadas: Clic derecho y arrastra (+Shift para horizontal/vertical). Esc para deshacer. Clic aquí para borrar todas.">
+        <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="3" y1="12" x2="21" y2="12" stroke-dasharray="3 3"></line><circle cx="4" cy="12" r="1.5" fill="currentColor"></circle><circle cx="20" cy="12" r="1.5" fill="currentColor"></circle></svg>
+        Líneas (<span id="lineCountBadge">0</span>)
+      </button>
+
       <div class="nav-divider"></div>
 
       <button class="btn" id="btnExportImage" title="Save PNG screenshot of display">
@@ -1360,6 +1365,10 @@
         draggingNote: null
       },
       notes: [],
+      lines: [],
+      drawingLine: null,
+      hoveredLineId: null,
+      activeLineEditId: null,
       noteMode: false,
       activeNoteEditId: null,
       pendingNotePos: null,
@@ -2019,6 +2028,8 @@
 
       drawCursors(width, height);
 
+      drawDottedLines(width, height);
+
       drawSnapIndicator(width, height);
 
       drawNotes(width, height);
@@ -2387,6 +2398,247 @@
       c.lineTo(x, y + radius);
       c.arcTo(x, y, x + radius, y, radius);
       c.closePath();
+    }
+
+    /* ==========================================================================
+       DOTTED STRAIGHT LINES DRAWING ENGINE
+       ========================================================================== */
+    function distToSegment(px, py, x1, y1, x2, y2) {
+      const dx = x2 - x1;
+      const dy = y2 - y1;
+      const l2 = dx * dx + dy * dy;
+      if (l2 === 0) return Math.hypot(px - x1, py - y1);
+      let t = ((px - x1) * dx + (py - y1) * dy) / l2;
+      t = Math.max(0, Math.min(1, t));
+      return Math.hypot(px - (x1 + t * dx), py - (y1 + t * dy));
+    }
+
+    function drawDottedLines(w, h) {
+      const tb = state.timebase;
+      const totalSpan = tb.scale * tb.divisions;
+      const tStart = tb.offset - totalSpan / 2;
+      const timeToPixel = w / totalSpan;
+      const midY = h / 2;
+
+      // 1. Draw saved lines
+      if (state.lines && state.lines.length > 0) {
+        state.lines.forEach(line => {
+          const ch = state.channels[(line.targetChannel || 1) - 1] || state.channels[0];
+          const pixelsPerVolt = (h / state.vDivisions) / ch.vScale;
+
+          const x1 = (line.t1 - tStart) * timeToPixel;
+          const y1 = midY - (line.v1 + ch.vOffset) * pixelsPerVolt;
+          const x2 = (line.t2 - tStart) * timeToPixel;
+          const y2 = midY - (line.v2 + ch.vOffset) * pixelsPerVolt;
+
+          line._x1 = x1;
+          line._y1 = y1;
+          line._x2 = x2;
+          line._y2 = y2;
+
+          const isHovered = (state.hoveredLineId === line.id);
+          const strokeCol = isHovered ? "#38bdf8" : (line.color || "#00e5ff");
+
+          ctx.save();
+
+          if (isHovered) {
+            ctx.shadowColor = "#38bdf8";
+            ctx.shadowBlur = 8;
+          }
+
+          // Dashed straight line
+          ctx.beginPath();
+          ctx.setLineDash([6, 4]);
+          ctx.lineWidth = isHovered ? 2.2 : 1.5;
+          ctx.strokeStyle = strokeCol;
+          ctx.moveTo(x1, y1);
+          ctx.lineTo(x2, y2);
+          ctx.stroke();
+          ctx.setLineDash([]);
+          ctx.shadowBlur = 0;
+
+          // Endpoints
+          ctx.fillStyle = strokeCol;
+          ctx.beginPath();
+          ctx.arc(x1, y1, 3.5, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.beginPath();
+          ctx.arc(x2, y2, 3.5, 0, Math.PI * 2);
+          ctx.fill();
+
+          // Measurements badge
+          const dt = Math.abs(line.t2 - line.t1);
+          const dv = Math.abs(line.v2 - line.v1);
+          const freq = dt > 1e-12 ? (1 / dt) : 0;
+
+          let text = "";
+          if (line.customText !== undefined && line.customText !== null && line.customText.trim() !== "") {
+            text = line.customText;
+          } else {
+            const isPureH = Math.abs(y2 - y1) < 2;
+            const isPureV = Math.abs(x2 - x1) < 2;
+
+            if (isPureH) {
+              text = `Δt: ${formatTime(dt)}${freq > 0 && freq < 1e9 ? ' (' + formatFrequency(freq) + ')' : ''}`;
+            } else if (isPureV) {
+              text = `ΔV: ${formatVoltage(dv)}`;
+            } else {
+              text = `Δt: ${formatTime(dt)} | ΔV: ${formatVoltage(dv)}`;
+            }
+          }
+
+          const mx = (x1 + x2) / 2;
+          const my = (y1 + y2) / 2;
+
+          ctx.font = "10.5px 'JetBrains Mono', 'Segoe UI', monospace";
+          const textW = ctx.measureText(text).width;
+          const badgeW = textW + (isHovered ? 34 : 16);
+          const badgeH = 18;
+          const badgeX = Math.max(4, Math.min(w - badgeW - 4, mx - badgeW / 2));
+          const badgeY = Math.max(4, Math.min(h - badgeH - 4, my - 16));
+
+          line._badgeRect = { x: badgeX, y: badgeY, w: badgeW, h: badgeH };
+
+          drawRoundedRect(ctx, badgeX, badgeY, badgeW, badgeH, 4);
+          ctx.fillStyle = isHovered ? "rgba(15, 23, 42, 0.95)" : "rgba(10, 16, 28, 0.88)";
+          ctx.fill();
+          ctx.strokeStyle = isHovered ? "#38bdf8" : "rgba(56, 189, 248, 0.35)";
+          ctx.lineWidth = 1;
+          ctx.stroke();
+
+          ctx.fillStyle = isHovered ? "#ffffff" : "#e2e8f0";
+          ctx.textBaseline = "middle";
+          ctx.textAlign = "left";
+          ctx.fillText(text, badgeX + 8, badgeY + badgeH / 2);
+
+          // If hovered, render '×' delete button
+          if (isHovered) {
+            const delX = badgeX + badgeW - 16;
+            const delY = badgeY + 2;
+            const delW = 14;
+            const delH = 14;
+            line._deleteRect = { x: delX, y: delY, w: delW, h: delH };
+
+            ctx.fillStyle = "#ef4444";
+            drawRoundedRect(ctx, delX, delY, delW, delH, 3);
+            ctx.fill();
+
+            ctx.strokeStyle = "#ffffff";
+            ctx.lineWidth = 1.4;
+            ctx.beginPath();
+            ctx.moveTo(delX + 3.5, delY + 3.5);
+            ctx.lineTo(delX + delW - 3.5, delY + delH - 3.5);
+            ctx.moveTo(delX + delW - 3.5, delY + 3.5);
+            ctx.lineTo(delX + 3.5, delY + delH - 3.5);
+            ctx.stroke();
+          } else {
+            line._deleteRect = null;
+          }
+
+          ctx.restore();
+        });
+      }
+
+      // 2. Draw line currently being dragged with right-click
+      if (state.drawingLine) {
+        const dl = state.drawingLine;
+        const x1 = dl.startX;
+        const y1 = dl.startY;
+        const x2 = dl.currentX;
+        const y2 = dl.currentY;
+
+        ctx.save();
+        ctx.shadowColor = dl.color || "#38bdf8";
+        ctx.shadowBlur = 8;
+
+        ctx.beginPath();
+        ctx.setLineDash([6, 4]);
+        ctx.lineWidth = 2;
+        ctx.strokeStyle = dl.color || "#38bdf8";
+        ctx.moveTo(x1, y1);
+        ctx.lineTo(x2, y2);
+        ctx.stroke();
+        ctx.setLineDash([]);
+        ctx.shadowBlur = 0;
+
+        ctx.fillStyle = dl.color || "#38bdf8";
+        ctx.beginPath();
+        ctx.arc(x1, y1, 4, 0, Math.PI * 2);
+        ctx.arc(x2, y2, 4, 0, Math.PI * 2);
+        ctx.fill();
+
+        const ch = state.channels[dl.targetChannel - 1] || state.channels[0];
+        const pixelsPerVolt = (h / state.vDivisions) / ch.vScale;
+        const tStart2 = tb.offset - totalSpan / 2;
+        const t1 = tStart2 + (x1 / w) * totalSpan;
+        const t2 = tStart2 + (x2 / w) * totalSpan;
+        const v1 = (midY - y1) / pixelsPerVolt - ch.vOffset;
+        const v2 = (midY - y2) / pixelsPerVolt - ch.vOffset;
+
+        const dt = Math.abs(t2 - t1);
+        const dv = Math.abs(v2 - v1);
+        const freq = dt > 1e-12 ? (1 / dt) : 0;
+
+        let text = "";
+        const isPureH = Math.abs(y2 - y1) < 2;
+        const isPureV = Math.abs(x2 - x1) < 2;
+
+        if (isPureH) {
+          text = `Δt: ${formatTime(dt)}${freq > 0 && freq < 1e9 ? ' (' + formatFrequency(freq) + ')' : ''} [H]`;
+        } else if (isPureV) {
+          text = `ΔV: ${formatVoltage(dv)} [V]`;
+        } else {
+          text = `Δt: ${formatTime(dt)} | ΔV: ${formatVoltage(dv)}`;
+        }
+
+        const mx = (x1 + x2) / 2;
+        const my = (y1 + y2) / 2;
+        ctx.font = "10.5px 'JetBrains Mono', 'Segoe UI', monospace";
+        const textW = ctx.measureText(text).width;
+        const badgeW = textW + 16;
+        const badgeH = 18;
+        const badgeX = Math.max(4, Math.min(w - badgeW - 4, mx - badgeW / 2));
+        const badgeY = Math.max(4, Math.min(h - badgeH - 4, my - 16));
+
+        drawRoundedRect(ctx, badgeX, badgeY, badgeW, badgeH, 4);
+        ctx.fillStyle = "rgba(15, 23, 42, 0.92)";
+        ctx.fill();
+        ctx.strokeStyle = dl.color || "#38bdf8";
+        ctx.lineWidth = 1;
+        ctx.stroke();
+
+        ctx.fillStyle = "#ffffff";
+        ctx.textBaseline = "middle";
+        ctx.textAlign = "left";
+        ctx.fillText(text, badgeX + 8, badgeY + badgeH / 2);
+
+        ctx.restore();
+      }
+    }
+
+    function updateDottedLineUI() {
+      const badge = document.getElementById("lineCountBadge");
+      const count = (state.lines || []).length;
+      if (badge) badge.textContent = count;
+      const btn = document.getElementById("btnClearLines");
+      if (btn) {
+        if (count > 0) {
+          btn.style.borderColor = "#38bdf8";
+          btn.style.color = "#38bdf8";
+          btn.title = `${count} línea(s) punteada(s). Clic para borrar todas, o pulsa Esc para deshacer la última.`;
+        } else {
+          btn.style.borderColor = "";
+          btn.style.color = "";
+          btn.title = "Líneas punteadas: Clic derecho y arrastra (+Shift para horizontal/vertical). Esc para deshacer.";
+        }
+      }
+    }
+
+    function clearDottedLines() {
+      if (!state.lines || state.lines.length === 0) return;
+      state.lines = [];
+      updateDottedLineUI();
+      redraw();
     }
 
     function drawNotes(w, h) {
@@ -2951,6 +3203,9 @@
       }
 
       // Mouse Canvas Interaction
+      canvas.addEventListener("contextmenu", (e) => {
+        e.preventDefault();
+      });
       canvas.addEventListener("mousedown", onCanvasMouseDown);
       window.addEventListener("mousemove", onCanvasMouseMove);
       window.addEventListener("mouseup", onCanvasMouseUp);
@@ -2965,11 +3220,79 @@
         const rect = canvas.getBoundingClientRect();
         let mx = e.clientX - rect.left;
         let my = e.clientY - rect.top;
+
+        // Check if double-clicked on a dotted line or its badge to edit text
+        if (state.lines && state.lines.length > 0) {
+          for (let i = state.lines.length - 1; i >= 0; i--) {
+            const l = state.lines[i];
+            let hitBadge = false;
+            if (l._badgeRect) {
+              const br = l._badgeRect;
+              if (mx >= br.x && mx <= br.x + br.w && my >= br.y && my <= br.y + br.h) {
+                hitBadge = true;
+              }
+            }
+            let hitLine = false;
+            if (l._x1 !== undefined) {
+              const d = distToSegment(mx, my, l._x1, l._y1, l._x2, l._y2);
+              if (d <= 12) hitLine = true;
+            }
+            if (hitBadge || hitLine) {
+              openLineEditModal(l);
+              return;
+            }
+          }
+        }
+
         if (state.snappedIntersection) {
           mx = state.snappedIntersection.xPix;
           my = state.snappedIntersection.yPix;
         }
         openNoteModalAtPos(mx, my);
+      });
+
+      // Global Keyboard Shortcuts (Escape to undo dotted line or cancel drawing, Delete to remove hovered line)
+      window.addEventListener("keydown", (e) => {
+        if (e.key === "Escape") {
+          if (state.drawingLine) {
+            state.drawingLine = null;
+            redraw();
+            return;
+          }
+          const noteModal = document.getElementById("noteModal");
+          if (noteModal && !noteModal.classList.contains("hidden")) {
+            return;
+          }
+          if (state.lines && state.lines.length > 0) {
+            state.lines.pop();
+            updateDottedLineUI();
+            redraw();
+          }
+        } else if (e.key === "Delete" || e.key === "Backspace") {
+          if (document.activeElement && (document.activeElement.tagName === "INPUT" || document.activeElement.tagName === "TEXTAREA")) {
+            return;
+          }
+          if (state.hoveredLineId) {
+            const idx = state.lines.findIndex(l => l.id === state.hoveredLineId);
+            if (idx !== -1) {
+              state.lines.splice(idx, 1);
+              state.hoveredLineId = null;
+              updateDottedLineUI();
+              redraw();
+            }
+          }
+        } else if (e.key === "Shift") {
+          if (state.drawingLine) {
+            const dx = Math.abs(state.drawingLine.currentX - state.drawingLine.startX);
+            const dy = Math.abs(state.drawingLine.currentY - state.drawingLine.startY);
+            if (dx >= dy) {
+              state.drawingLine.currentY = state.drawingLine.startY;
+            } else {
+              state.drawingLine.currentX = state.drawingLine.startX;
+            }
+            redraw();
+          }
+        }
       });
     }
 
@@ -2979,6 +3302,76 @@
       const mouseY = e.clientY - rect.top;
       const w = rect.width;
       const h = rect.height;
+
+      // Handle Right Click: Dotted Straight Lines
+      if (e.button === 2) {
+        e.preventDefault();
+
+        // 1. Check if clicked directly on a line delete '×'
+        if (state.lines && state.lines.length > 0) {
+          for (let i = state.lines.length - 1; i >= 0; i--) {
+            const l = state.lines[i];
+            if (l._deleteRect) {
+              const dr = l._deleteRect;
+              if (mouseX >= dr.x && mouseX <= dr.x + dr.w && mouseY >= dr.y && mouseY <= dr.y + dr.h) {
+                state.lines.splice(i, 1);
+                updateDottedLineUI();
+                redraw();
+                return;
+              }
+            }
+          }
+        }
+
+        // 2. Start drawing line with right-click drag
+        const tb = state.timebase;
+        const totalSpan = tb.scale * tb.divisions;
+        const tStart = tb.offset - totalSpan / 2;
+        const t = tStart + (mouseX / w) * totalSpan;
+
+        const targetChId = state.cursors.targetChannel || 1;
+        const ch = state.channels[targetChId - 1] || state.channels[0];
+        const midY = h / 2;
+        const pixelsPerVolt = (h / state.vDivisions) / ch.vScale;
+        const v = (midY - mouseY) / pixelsPerVolt - ch.vOffset;
+
+        state.drawingLine = {
+          startX: mouseX,
+          startY: mouseY,
+          currentX: mouseX,
+          currentY: mouseY,
+          startT: t,
+          startV: v,
+          targetChannel: targetChId,
+          color: ch.color || "#00e5ff",
+          moved: false
+        };
+        redraw();
+        return;
+      }
+
+      // Check if left click on a line delete '×' or badge to edit
+      if (state.lines && state.lines.length > 0) {
+        for (let i = state.lines.length - 1; i >= 0; i--) {
+          const l = state.lines[i];
+          if (l._deleteRect) {
+            const dr = l._deleteRect;
+            if (mouseX >= dr.x && mouseX <= dr.x + dr.w && mouseY >= dr.y && mouseY <= dr.y + dr.h) {
+              state.lines.splice(i, 1);
+              updateDottedLineUI();
+              redraw();
+              return;
+            }
+          }
+          if (l._badgeRect) {
+            const br = l._badgeRect;
+            if (mouseX >= br.x && mouseX <= br.x + br.w && mouseY >= br.y && mouseY <= br.y + br.h) {
+              openLineEditModal(l);
+              return;
+            }
+          }
+        }
+      }
 
       // 1. Check if clicked on note delete '×'
       for (let i = state.notes.length - 1; i >= 0; i--) {
@@ -3082,6 +3475,28 @@
       const w = rect.width;
       const h = rect.height;
 
+      // Dotted line drawing with right-click drag
+      if (state.drawingLine) {
+        let curX = mouseX;
+        let curY = mouseY;
+        if (e.shiftKey) {
+          const dx = Math.abs(mouseX - state.drawingLine.startX);
+          const dy = Math.abs(mouseY - state.drawingLine.startY);
+          if (dx >= dy) {
+            curY = state.drawingLine.startY; // Lock horizontal
+          } else {
+            curX = state.drawingLine.startX; // Lock vertical
+          }
+        }
+        state.drawingLine.currentX = curX;
+        state.drawingLine.currentY = curY;
+        if (Math.hypot(curX - state.drawingLine.startX, curY - state.drawingLine.startY) > 4) {
+          state.drawingLine.moved = true;
+        }
+        redraw();
+        return;
+      }
+
       // Note dragging
       if (state.interaction.draggingNote) {
         const dn = state.interaction.draggingNote;
@@ -3098,6 +3513,40 @@
 
       if (!state.cursors.dragging && !state.interaction.isPanning) {
         let cursorStyle = state.noteMode ? "cell" : "crosshair";
+
+        // Check hover over dotted lines
+        let hoveredLine = null;
+        let overLineDelBtn = false;
+        if (state.lines && state.lines.length > 0) {
+          for (let i = state.lines.length - 1; i >= 0; i--) {
+            const l = state.lines[i];
+            if (l._deleteRect) {
+              const dr = l._deleteRect;
+              if (mouseX >= dr.x && mouseX <= dr.x + dr.w && mouseY >= dr.y && mouseY <= dr.y + dr.h) {
+                hoveredLine = l;
+                overLineDelBtn = true;
+                break;
+              }
+            }
+            if (l._x1 !== undefined) {
+              const d = distToSegment(mouseX, mouseY, l._x1, l._y1, l._x2, l._y2);
+              if (d <= 8) {
+                hoveredLine = l;
+                break;
+              }
+            }
+          }
+        }
+
+        const prevHoveredId = state.hoveredLineId;
+        state.hoveredLineId = hoveredLine ? hoveredLine.id : null;
+        if (prevHoveredId !== state.hoveredLineId) {
+          redraw();
+        }
+
+        if (overLineDelBtn || hoveredLine) {
+          cursorStyle = "pointer";
+        }
 
         // Check hover over notes
         for (let i = state.notes.length - 1; i >= 0; i--) {
@@ -3204,6 +3653,55 @@
     }
 
     function onCanvasMouseUp(e) {
+      if (state.drawingLine) {
+        const dl = state.drawingLine;
+        const movedDist = Math.hypot(dl.currentX - dl.startX, dl.currentY - dl.startY);
+        const rect = canvas.getBoundingClientRect();
+        const w = rect.width;
+        const h = rect.height;
+
+        if (dl.moved && movedDist > 6) {
+          const tb = state.timebase;
+          const totalSpan = tb.scale * tb.divisions;
+          const tStart = tb.offset - totalSpan / 2;
+          const tEnd = tStart + (dl.currentX / w) * totalSpan;
+          const ch = state.channels[dl.targetChannel - 1] || state.channels[0];
+          const midY = h / 2;
+          const pixelsPerVolt = (h / state.vDivisions) / ch.vScale;
+          const vEnd = (midY - dl.currentY) / pixelsPerVolt - ch.vOffset;
+
+          state.lines.push({
+            id: Date.now() + Math.random(),
+            t1: dl.startT,
+            v1: dl.startV,
+            t2: tEnd,
+            v2: vEnd,
+            targetChannel: dl.targetChannel,
+            color: dl.color || "#00e5ff"
+          });
+          updateDottedLineUI();
+        } else {
+          // Quick right-click without drag: check if clicked near an existing line to delete it!
+          let clickedLineIdx = -1;
+          for (let i = state.lines.length - 1; i >= 0; i--) {
+            const l = state.lines[i];
+            if (l._x1 !== undefined) {
+              const d = distToSegment(dl.startX, dl.startY, l._x1, l._y1, l._x2, l._y2);
+              if (d <= 10) {
+                clickedLineIdx = i;
+                break;
+              }
+            }
+          }
+          if (clickedLineIdx !== -1) {
+            state.lines.splice(clickedLineIdx, 1);
+            updateDottedLineUI();
+          }
+        }
+        state.drawingLine = null;
+        redraw();
+        return;
+      }
       if (state.interaction.draggingNote) {
         const dn = state.interaction.draggingNote;
         if (!dn.moved) {
@@ -3318,6 +3816,7 @@
       const textInput = document.getElementById("noteTextInput");
       textInput.value = `t = ${formatTime(t)}, V = ${formatVoltage(v)}`;
       document.getElementById("btnDeleteNote").classList.add("hidden");
+      document.getElementById("btnDeleteNote").textContent = "Delete Note";
 
       selectNoteColor(ch.color || "#fbbf24");
 
@@ -3331,6 +3830,7 @@
 
     function openNoteModalForEdit(note) {
       state.activeNoteEditId = note.id;
+      state.activeLineEditId = null;
       state.pendingNotePos = null;
 
       document.getElementById("noteModalTitle").textContent = "Edit Note";
@@ -3340,12 +3840,55 @@
       const textInput = document.getElementById("noteTextInput");
       textInput.value = note.text || "";
       document.getElementById("btnDeleteNote").classList.remove("hidden");
+      document.getElementById("btnDeleteNote").textContent = "Delete Note";
 
       selectNoteColor(note.color || "#fbbf24");
 
       const modal = document.getElementById("noteModal");
       modal.classList.remove("hidden");
       setTimeout(() => textInput.focus(), 60);
+    }
+
+    function openLineEditModal(line) {
+      state.activeLineEditId = line.id;
+      state.activeNoteEditId = null;
+      state.pendingNotePos = null;
+
+      document.getElementById("noteModalTitle").textContent = "Editar etiqueta de línea";
+      const dt = Math.abs(line.t2 - line.t1);
+      const dv = Math.abs(line.v2 - line.v1);
+      const freq = dt > 1e-12 ? (1 / dt) : 0;
+      const ch = state.channels[(line.targetChannel || 1) - 1] || state.channels[0];
+      const chLabel = getChannelDisplayName(ch);
+
+      let measInfo = `Medición: Δt = ${formatTime(dt)}, ΔV = ${formatVoltage(dv)} (${chLabel})`;
+      if (freq > 0 && freq < 1e9) {
+        measInfo += ` | ${formatFrequency(freq)}`;
+      }
+      document.getElementById("notePositionInfo").textContent = measInfo;
+
+      const textInput = document.getElementById("noteTextInput");
+      let defText = "";
+      if (Math.abs(line.v2 - line.v1) < 1e-4) {
+        defText = `Δt: ${formatTime(dt)}${freq > 0 && freq < 1e9 ? ' (' + formatFrequency(freq) + ')' : ''}`;
+      } else if (Math.abs(line.t2 - line.t1) < 1e-12) {
+        defText = `ΔV: ${formatVoltage(dv)}`;
+      } else {
+        defText = `Δt: ${formatTime(dt)} | ΔV: ${formatVoltage(dv)}`;
+      }
+      textInput.value = (line.customText !== undefined && line.customText !== null) ? line.customText : defText;
+
+      document.getElementById("btnDeleteNote").classList.remove("hidden");
+      document.getElementById("btnDeleteNote").textContent = "Borrar Línea";
+
+      selectNoteColor(line.color || ch.color || "#00e5ff");
+
+      const modal = document.getElementById("noteModal");
+      modal.classList.remove("hidden");
+      setTimeout(() => {
+        textInput.focus();
+        textInput.select();
+      }, 60);
     }
 
     function saveNoteFromModal() {
@@ -3355,7 +3898,14 @@
         return;
       }
 
-      if (state.activeNoteEditId) {
+      if (state.activeLineEditId) {
+        const line = state.lines.find(l => l.id === state.activeLineEditId);
+        if (line) {
+          line.customText = text;
+          line.color = state.selectedNoteColor || line.color;
+        }
+        state.activeLineEditId = null;
+      } else if (state.activeNoteEditId) {
         const note = state.notes.find(n => n.id === state.activeNoteEditId);
         if (note) {
           note.text = text;
@@ -3380,6 +3930,14 @@
     }
 
     function deleteActiveNote() {
+      if (state.activeLineEditId) {
+        state.lines = state.lines.filter(l => l.id !== state.activeLineEditId);
+        state.activeLineEditId = null;
+        updateDottedLineUI();
+        closeNoteModal();
+        redraw();
+        return;
+      }
       if (state.activeNoteEditId) {
         state.notes = state.notes.filter(n => n.id !== state.activeNoteEditId);
         closeNoteModal();
@@ -3390,6 +3948,7 @@
     function closeNoteModal() {
       document.getElementById("noteModal").classList.add("hidden");
       state.activeNoteEditId = null;
+      state.activeLineEditId = null;
       state.pendingNotePos = null;
     }
 
@@ -3593,6 +4152,16 @@
           relX: n.relX,
           relY: n.relY
         })),
+        lines: (state.lines || []).map(l => ({
+          id: l.id,
+          t1: l.t1,
+          v1: l.v1,
+          t2: l.t2,
+          v2: l.v2,
+          targetChannel: l.targetChannel,
+          color: l.color,
+          customText: l.customText || ""
+        })),
         channels: state.channels.map(ch => ({
           id: ch.id,
           name: ch.name,
@@ -3767,6 +4336,23 @@
         } else {
           state.notes = [];
         }
+
+        // 6. Dotted Lines
+        if (Array.isArray(data.lines)) {
+          state.lines = data.lines.map(l => ({
+            id: l.id || ("line_" + Date.now() + "_" + Math.random().toString(36).substr(2, 4)),
+            t1: Number(l.t1) || 0,
+            v1: Number(l.v1) || 0,
+            t2: Number(l.t2) || 0,
+            v2: Number(l.v2) || 0,
+            targetChannel: Number(l.targetChannel) || 1,
+            color: l.color || "#00e5ff",
+            customText: l.customText || ""
+          }));
+        } else {
+          state.lines = [];
+        }
+        updateDottedLineUI();
 
         updateCursorDropdownOptions();
         updateOSDChannels();
