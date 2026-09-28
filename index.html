@@ -874,6 +874,409 @@
       border-color: #38bdf8;
       transform: scale(1.02);
     }
+
+    /* ==========================================================================
+       BK PRECISION 2831E MULTIMETER & DATALOGGER STYLES
+       ========================================================================== */
+    .dmm-top-btn {
+      border-color: #0284c7 !important;
+      background: linear-gradient(180deg, #102a45 0%, #0d1e33 100%) !important;
+      color: #e0f2fe !important;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-weight: 700;
+      transition: all 0.2s ease;
+    }
+    .dmm-top-btn:hover {
+      background: linear-gradient(180deg, #183e66 0%, #112844 100%) !important;
+      border-color: #38bdf8 !important;
+      box-shadow: 0 0 10px rgba(56, 189, 248, 0.3);
+    }
+    .dmm-top-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: #64748b;
+      display: inline-block;
+      transition: all 0.2s ease;
+    }
+    .dmm-top-dot.connected {
+      background: #10b981;
+      box-shadow: 0 0 7px #10b981;
+    }
+    .dmm-top-dot.reading {
+      background: #38bdf8;
+      box-shadow: 0 0 9px #38bdf8;
+    }
+    .dmm-top-dot.demo {
+      background: #f59e0b;
+      box-shadow: 0 0 7px #f59e0b;
+    }
+
+    .dmm-window {
+      position: absolute;
+      top: 52px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: min(1040px, 96vw);
+      max-height: calc(100vh - 65px);
+      background: #090e17;
+      border: 1px solid #1e293b;
+      border-radius: 10px;
+      box-shadow: 0 20px 50px rgba(0,0,0,0.85), 0 0 0 1px rgba(56, 189, 248, 0.25);
+      display: flex;
+      flex-direction: column;
+      z-index: 1000;
+      overflow: hidden;
+      font-size: 12px;
+    }
+    .dmm-window.hidden {
+      display: none !important;
+    }
+
+    .dmm-header {
+      background: linear-gradient(180deg, #131d2e 0%, #0c1422 100%);
+      padding: 8px 14px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid #1e293b;
+      cursor: move;
+      user-select: none;
+    }
+
+    .dmm-instrument-bar {
+      background: #0b111c;
+      padding: 8px 14px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      border-bottom: 1px solid #172338;
+      flex-wrap: wrap;
+    }
+
+    .dmm-display-box {
+      background: #020617;
+      border: 1.5px solid #1e293b;
+      border-radius: 6px;
+      padding: 6px 14px;
+      display: flex;
+      align-items: baseline;
+      gap: 10px;
+      box-shadow: inset 0 2px 8px rgba(0,0,0,0.9);
+      min-width: 250px;
+    }
+    .dmm-display-digits {
+      font-family: 'Courier New', Courier, monospace;
+      font-size: 26px;
+      font-weight: 800;
+      letter-spacing: 1px;
+      color: #38bdf8;
+      text-shadow: 0 0 12px rgba(56, 189, 248, 0.5);
+      font-variant-numeric: tabular-nums;
+    }
+    .dmm-display-units {
+      font-size: 13px;
+      font-weight: 700;
+      color: #94a3b8;
+      letter-spacing: 0.5px;
+    }
+    .dmm-display-status {
+      font-size: 9.5px;
+      color: #64748b;
+      margin-left: auto;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .dmm-tabs-nav {
+      display: flex;
+      align-items: center;
+      background: #080d16;
+      border-bottom: 1px solid #1e293b;
+      padding: 0 12px;
+      gap: 4px;
+    }
+    .dmm-tab-btn {
+      background: transparent;
+      border: none;
+      color: #94a3b8;
+      padding: 8px 16px;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      border-bottom: 2px solid transparent;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.15s ease;
+    }
+    .dmm-tab-btn:hover {
+      color: #e2e8f0;
+      background: rgba(255,255,255,0.03);
+    }
+    .dmm-tab-btn.active {
+      color: #38bdf8;
+      border-bottom-color: #38bdf8;
+      background: rgba(56, 189, 248, 0.08);
+    }
+
+    .dmm-body {
+      padding: 10px 14px;
+      overflow-y: auto;
+      max-height: calc(90vh - 160px);
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .dmm-capture-card {
+      background: #0d1524;
+      border: 1px solid #1e293b;
+      border-radius: 8px;
+      padding: 8px 12px;
+      display: flex;
+      flex-direction: column;
+      align-items: stretch;
+      gap: 10px;
+      width: 100%;
+    }
+    .dmm-radio-group {
+      display: inline-flex;
+      align-items: center;
+      background: #020617;
+      border: 1px solid #1e293b;
+      border-radius: 6px;
+      padding: 2px;
+      gap: 2px;
+    }
+    .dmm-radio-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 3px 8px;
+      border-radius: 4px;
+      font-size: 11px;
+      font-weight: 700;
+      color: #94a3b8;
+      cursor: pointer;
+      user-select: none;
+      transition: all 0.15s ease;
+      border: 1px solid transparent;
+    }
+    .dmm-radio-pill input[type="radio"] {
+      cursor: pointer;
+      accent-color: #38bdf8;
+      margin: 0;
+      width: 12px;
+      height: 12px;
+    }
+    .dmm-radio-pill:hover {
+      color: #e2e8f0;
+      background: rgba(255, 255, 255, 0.04);
+    }
+    .dmm-radio-pill.active {
+      background: rgba(56, 189, 248, 0.14);
+      color: #38bdf8;
+      border-color: rgba(56, 189, 248, 0.4);
+      box-shadow: 0 0 8px rgba(56, 189, 248, 0.2);
+    }
+
+    .dmm-check-pills {
+      display: flex;
+      align-items: center;
+      background: #020617;
+      border-radius: 6px;
+      padding: 2px;
+      border: 1px solid #1e293b;
+      gap: 2px;
+    }
+    .dmm-check-pill {
+      padding: 4px 9px;
+      font-size: 11px;
+      font-weight: 700;
+      cursor: pointer;
+      border-radius: 4px;
+      color: #94a3b8;
+      transition: all 0.15s ease;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      user-select: none;
+    }
+    .dmm-check-pill:hover {
+      color: #e2e8f0;
+    }
+    .dmm-check-pill.active-ok {
+      background: #14532d;
+      color: #4ade80;
+      border: 1px solid #22c55e;
+      box-shadow: 0 0 6px rgba(34, 197, 94, 0.3);
+    }
+    .dmm-check-pill.active-fail {
+      background: #7f1d1d;
+      color: #f87171;
+      border: 1px solid #ef4444;
+      box-shadow: 0 0 6px rgba(239, 68, 68, 0.3);
+    }
+    .dmm-check-pill.active-investigate {
+      background: #78350f;
+      color: #fbbf24;
+      border: 1px solid #f59e0b;
+      box-shadow: 0 0 6px rgba(245, 158, 11, 0.3);
+    }
+
+    .dmm-subtabs {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+    .dmm-subtab {
+      background: #0b111c;
+      border: 1px solid #1e293b;
+      border-radius: 5px;
+      padding: 4px 10px;
+      font-size: 11px;
+      font-weight: 600;
+      color: #94a3b8;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .dmm-subtab:hover {
+      border-color: #38bdf8;
+      color: #e2e8f0;
+    }
+    .dmm-subtab.active {
+      background: #0284c7;
+      border-color: #38bdf8;
+      color: #ffffff;
+      box-shadow: 0 0 8px rgba(56, 189, 248, 0.3);
+    }
+
+    .dmm-canvas-card {
+      position: relative;
+      background: #040711;
+      border: 1px solid #1e293b;
+      border-radius: 8px;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .dmm-table-container {
+      background: #070c16;
+      border: 1px solid #1e293b;
+      border-radius: 8px;
+      overflow: hidden;
+      max-height: 200px;
+      overflow-y: auto;
+    }
+    .dmm-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 11.5px;
+      text-align: left;
+    }
+    .dmm-table th {
+      background: #0d1524;
+      color: #94a3b8;
+      padding: 6px 10px;
+      font-weight: 700;
+      position: sticky;
+      top: 0;
+      border-bottom: 1px solid #1e293b;
+      z-index: 1;
+    }
+    .dmm-table td {
+      padding: 5px 10px;
+      border-bottom: 1px solid #141e2e;
+      color: #e2e8f0;
+    }
+    .dmm-table tr:hover td {
+      background: #111a2c;
+    }
+
+    .dmm-status-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 2px 7px;
+      border-radius: 4px;
+      font-size: 10px;
+      font-weight: 700;
+    }
+    .dmm-status-badge.ok {
+      background: rgba(34, 197, 94, 0.15);
+      color: #4ade80;
+      border: 1px solid rgba(34, 197, 94, 0.35);
+    }
+    .dmm-status-badge.fail {
+      background: rgba(239, 68, 68, 0.15);
+      color: #f87171;
+      border: 1px solid rgba(239, 68, 68, 0.35);
+    }
+    .dmm-status-badge.investigate {
+      background: rgba(245, 158, 11, 0.15);
+      color: #fbbf24;
+      border: 1px solid rgba(245, 158, 11, 0.35);
+    }
+
+    /* Datalogger Stats Card */
+    .dmm-stat-box {
+      background: #090e17;
+      border: 1px solid #1e293b;
+      border-radius: 6px;
+      padding: 6px 10px;
+      display: flex;
+      flex-direction: column;
+      flex: 1;
+      min-width: 100px;
+    }
+    .dmm-stat-label {
+      font-size: 9.5px;
+      font-weight: 700;
+      color: #64748b;
+      text-transform: uppercase;
+    }
+    .dmm-stat-val {
+      font-size: 13px;
+      font-weight: 800;
+      color: #38bdf8;
+      font-family: monospace;
+      margin-top: 2px;
+    }
+
+    /* Modal de Edición de Puntos */
+    .dmm-edit-modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: rgba(4, 7, 17, 0.78);
+      backdrop-filter: blur(4px);
+      z-index: 2500;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .dmm-edit-modal-overlay.hidden {
+      display: none !important;
+    }
+    .dmm-edit-card {
+      background: #090e17;
+      border: 1.5px solid #0284c7;
+      border-radius: 10px;
+      padding: 18px 22px;
+      width: min(440px, 92vw);
+      box-shadow: 0 25px 60px rgba(0,0,0,0.9), 0 0 20px rgba(2, 132, 199, 0.25);
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
   </style>
 </head>
 <body>
@@ -901,6 +1304,13 @@
         <button class="btn btn-scope" id="btnFetchScopeData" onclick="openFetchScopeModal()" title="Download & import waveforms">
           <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
           Fetch Data
+        </button>
+        <div class="nav-divider"></div>
+        <button class="btn dmm-top-btn" id="btnOpenDmmModal" onclick="toggleDmmModal()" title="Multímetro Studio (Entrada Manual & BK Precision 2831E)">
+          <span class="dmm-top-dot" id="dmmTopDot" style="background:#0284c7; box-shadow:0 0 6px #0284c7;"></span>
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#38bdf8" stroke-width="2"><rect x="4" y="2" width="16" height="20" rx="3"></rect><rect x="7" y="5" width="10" height="5" rx="1" fill="#0b111c"></rect><circle cx="12" cy="15" r="3"></circle><line x1="12" y1="15" x2="14" y2="13.5"></line></svg>
+          <span>Multímetro DMM</span>
+          <span id="dmmTopLiveBadge" style="display:none; font-family:monospace; font-size:10px; padding:1px 5px; background:#0369a1; color:#fff; border-radius:3px;">--</span>
         </button>
       </div>
     </div>
@@ -1130,6 +1540,244 @@
           </div>
           <div class="note-modal-footer">
             <button class="btn" onclick="closeFetchScopeModal()" style="margin-left:auto;">Cerrar</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- MULTIMETER & DATALOGGER MODAL (MANUAL & BK PRECISION 2831E) -->
+      <div id="dmmModal" class="dmm-window hidden">
+        <!-- HEADER / DRAG HANDLE -->
+        <div class="dmm-header" id="dmmDragHeader">
+          <div style="display:flex; align-items:center; gap:8px;">
+            <div class="brand-logo" style="width:20px; height:20px; font-size:11px; border-radius:4px; background:linear-gradient(135deg, #0284c7, #38bdf8); color:#000; font-weight:900;">DMM</div>
+            <span style="font-weight:700; font-size:13px; color:#e2e8f0;">Multímetro - Validación & Medidas</span>
+          </div>
+          <div style="display:flex; align-items:center; gap:8px;">
+            <button class="modal-close-btn" onclick="toggleDmmModal()">&times;</button>
+          </div>
+        </div>
+
+        <!-- INSTRUMENT TOP BAR -->
+        <div class="dmm-instrument-bar">
+          <!-- LIVE DISPLAY -->
+          <div class="dmm-display-box" title="Lectura actual">
+            <div id="dmmDisplayDigits" class="dmm-display-digits"> 00.000</div>
+            <div id="dmmDisplayUnits" class="dmm-display-units">V DC</div>
+            <div id="dmmDisplayStatus" class="dmm-display-status" style="max-width:320px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">MODO MANUAL | [ENTER] REGISTRAR MEDIDA</div>
+          </div>
+
+          <!-- TOP ACTIONS: IMPORT & EXPORT JSON -->
+          <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap; margin-left:auto;">
+            <button class="btn" onclick="document.getElementById('dmmSessionFileInput').click()" title="Importar sesión (.json)">
+              <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path></svg>
+              Import
+            </button>
+            <input type="file" id="dmmSessionFileInput" accept=".json,application/json" style="display:none" onchange="handleDmmSessionFile(this)">
+
+            <button class="btn" onclick="exportDmmSessionOnly()" title="Exportar sesión (.json)">
+              <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+              Export
+            </button>
+          </div>
+        </div>
+
+        <!-- BODY -->
+        <div class="dmm-body">
+          <div id="dmmTabTestPointsView" style="display:flex; flex-direction:column; gap:10px;">
+            <!-- FORMULARIO DE TOMA DE MEDIDA MANUAL / AUTOMÁTICA -->
+            <div class="dmm-capture-card">
+              <!-- FILA SUPERIOR: MAGNITUDES Y REDONDEO -->
+              <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap; width:100%;">
+                <label style="font-weight:700; color:#94a3b8; font-size:11px;">Magnitud:</label>
+                <div class="dmm-radio-group" id="dmmMagnitudeRadioGroup" title="Selecciona la magnitud a medir">
+                  <label class="dmm-radio-pill active" id="radioLabel_vdc">
+                    <input type="radio" name="dmmMagnitude" value="vdc" checked onchange="setDmmMagnitude('vdc')">
+                    <span>⚡ Tensión DC</span>
+                  </label>
+                  <label class="dmm-radio-pill" id="radioLabel_vac">
+                    <input type="radio" name="dmmMagnitude" value="vac" onchange="setDmmMagnitude('vac')">
+                    <span>〰️ Tensión AC</span>
+                  </label>
+                  <label class="dmm-radio-pill" id="radioLabel_idc">
+                    <input type="radio" name="dmmMagnitude" value="idc" onchange="setDmmMagnitude('idc')">
+                    <span>🔋 Corriente DC</span>
+                  </label>
+                  <label class="dmm-radio-pill" id="radioLabel_res">
+                    <input type="radio" name="dmmMagnitude" value="res" onchange="setDmmMagnitude('res')">
+                    <span>Ω Resistencia</span>
+                  </label>
+                </div>
+                <input type="hidden" id="dmmTpTypeSelect" value="vdc">
+
+                <div class="nav-divider" style="height:18px; margin:0 4px;"></div>
+
+                <label style="font-weight:700; color:#94a3b8; font-size:11px;">Redondeo:</label>
+                <div class="dmm-radio-group" id="dmmRoundingRadioGroup" title="Selecciona los decimales mostrados (la medición original siempre se conserva)">
+                  <label class="dmm-radio-pill" id="radioLabel_round1">
+                    <input type="radio" name="dmmRounding" value="1" onchange="setDmmRounding('1')">
+                    <span>1 decimal</span>
+                  </label>
+                  <label class="dmm-radio-pill active" id="radioLabel_round2">
+                    <input type="radio" name="dmmRounding" value="2" checked onchange="setDmmRounding('2')">
+                    <span>2 decimales</span>
+                  </label>
+                  <label class="dmm-radio-pill" id="radioLabel_roundNone">
+                    <input type="radio" name="dmmRounding" value="none" onchange="setDmmRounding('none')">
+                    <span>Sin redondeo</span>
+                  </label>
+                </div>
+              </div>
+
+              <!-- FILA INFERIOR: MEDIDA, PUNTO, ESTADO, COMENTARIO, REGISTRAR MEDIDA -->
+              <div style="display:flex; align-items:center; gap:8px; width:100%;">
+                <!-- 1. Medida -->
+                <label style="font-weight:700; color:#38bdf8; font-size:11px; white-space:nowrap;">Medida:</label>
+                <input type="text" id="dmmTpValueInput" class="input" style="width:120px; font-weight:800; font-family:monospace; font-size:13px; color:#38bdf8; background:#020617; border:1.5px solid #0284c7;" placeholder="ej. 3.3, 10k, 2.2M, 100u" title="Introduce la medida con sufijo opcional (ej. 3.3, 10k, 2.2M, 45m, 100u). Pulsa Enter para registrar. Haz clic para borrar." onclick="this.value=''; onDmmManualValueInput('');">
+
+                <!-- 2. Punto (Opcional, puede estar en blanco y se borra al hacer clic) -->
+                <label style="font-weight:700; color:#94a3b8; font-size:11px; white-space:nowrap; margin-left:4px;">Punto:</label>
+                <input type="text" id="dmmTpNameInput" class="input" style="width:85px; font-weight:700; color:#38bdf8;" value="" placeholder="Opcional..." title="Nombre o referencia del punto (opcional). Haz clic para borrar." onclick="this.value='';">
+
+                <!-- 3. Estado (Puede estar desactivado haciendo clic sobre el activo) -->
+                <label style="font-weight:700; color:#94a3b8; font-size:11px; white-space:nowrap; margin-left:4px;">Estado:</label>
+                <div class="dmm-check-pills" title="Selecciona un estado o pulsa sobre el activo para desactivarlo">
+                  <div class="dmm-check-pill" id="pillStatusOk" onclick="setDmmCaptureStatus('ok')">✓ Correcto</div>
+                  <div class="dmm-check-pill" id="pillStatusFail" onclick="setDmmCaptureStatus('fail')">✕ Fallo</div>
+                  <div class="dmm-check-pill" id="pillStatusInvestigate" onclick="setDmmCaptureStatus('investigate')">⚠ Investigar</div>
+                </div>
+
+                <!-- 4. Comentario (Se expande ocupando todo el ancho restante) -->
+                <input type="text" id="dmmTpCommentInput" class="input" style="flex:1; min-width:180px;" placeholder="Comentario u observación (opcional)..." title="Nota o comentario para el gráfico y Word. Haz clic para borrar." onclick="this.value='';">
+
+                <!-- 5. Registrar medida (Mismo estilo que Import y Export, icono disquete SVG) -->
+                <button class="btn" id="btnCapturePoint" onclick="captureDmmTestPoint()" style="flex-shrink:0; padding:5px 12px; display:inline-flex; align-items:center; justify-content:center;" title="Registrar medida (Atajo: Tecla Enter)">
+                  <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 8 15 8"></polyline></svg>
+                </button>
+              </div>
+            </div>
+
+            <!-- SUB-TABS SELECTOR DE MULTI-GRÁFICAS -->
+            <div style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:8px;">
+              <div class="dmm-subtabs">
+                <div class="dmm-subtab active" id="subtabVdc" onclick="setDmmActiveGraph('vdc')">⚡ Tensión DC (<span id="cntVdc">0</span>)</div>
+                <div class="dmm-subtab" id="subtabVac" onclick="setDmmActiveGraph('vac')">〰️ Tensión AC (<span id="cntVac">0</span>)</div>
+                <div class="dmm-subtab" id="subtabIdc" onclick="setDmmActiveGraph('idc')">🔋 Corriente DC (<span id="cntIdc">0</span>)</div>
+                <div class="dmm-subtab" id="subtabRes" onclick="setDmmActiveGraph('res')">Ω Resistencia (<span id="cntRes">0</span>)</div>
+                <div class="dmm-subtab" id="subtabMosaic" onclick="setDmmActiveGraph('mosaic')">📋 Mosaico (Todas)</div>
+              </div>
+
+              <!-- BOTONES DE EXPORTACIÓN A WORD Y ARCHIVOS -->
+              <div style="display:flex; align-items:center; gap:6px;">
+                <button class="btn" onclick="copyDmmTableForWord()" style="background:#044e54; border-color:#06b6d4; color:#a5f3fc;" title="Copia al portapapeles una tabla estilizada lista para pegar directamente en Microsoft Word con Ctrl+V">
+                  📋 Copiar Tabla para Word
+                </button>
+                <button class="btn" onclick="copyDmmGraphForWord()" title="Copia la gráfica actual con sus notas para pegarla en Word">
+                  🖼️ Copiar Gráfica
+                </button>
+                <button class="btn" onclick="downloadDmmGraphPNG()" title="Descargar imagen PNG de la gráfica">
+                  📥 PNG
+                </button>
+                <button class="btn" onclick="clearDmmPoints()" style="color:#f87171;" title="Borrar todos los puntos medidos">
+                  🗑️
+                </button>
+              </div>
+            </div>
+
+            <!-- CANVAS DE GRÁFICA CON LLAMADAS / NOTAS -->
+            <div class="dmm-canvas-card">
+              <canvas id="dmmGraphCanvas" width="980" height="260" style="width:100%; height:260px; display:block; cursor:crosshair;"></canvas>
+            </div>
+
+            <!-- TABLA DE RESULTADOS -->
+            <div class="dmm-table-container">
+              <table class="dmm-table">
+                <thead>
+                  <tr>
+                    <th style="width:40px;">#</th>
+                    <th style="width:90px;">Punto</th>
+                    <th style="width:100px;">Magnitud</th>
+                    <th style="width:90px;">Lectura</th>
+                    <th style="width:110px;">Estado</th>
+                    <th>Comentario / Observación</th>
+                    <th style="width:75px;">Hora</th>
+                    <th style="width:65px; text-align:center;">Acciones</th>
+                  </tr>
+                </thead>
+                <tbody id="dmmPointsTableBody">
+                  <tr>
+                    <td colspan="8" style="text-align:center; color:#64748b; padding:18px;">
+                      No hay puntos registrados aún. Introduce el valor de la medida y pulsa <b>[Enter]</b> o el botón <b>💾</b>.
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- MODAL DE EDICIÓN DE PUNTO DE MEDIDA -->
+      <div id="dmmEditPointModal" class="dmm-edit-modal-overlay hidden">
+        <div class="dmm-edit-card">
+          <div style="display:flex; align-items:center; justify-content:space-between; border-bottom:1px solid #1e293b; padding-bottom:8px;">
+            <div style="display:flex; align-items:center; gap:6px;">
+              <span style="font-weight:700; font-size:13px; color:#e2e8f0;">✏️ Editar Punto de Medición</span>
+              <span id="editPtBadge" style="font-family:monospace; font-size:11px; padding:1px 6px; background:#0284c7; color:#fff; border-radius:3px;">TP1</span>
+            </div>
+            <button class="modal-close-btn" onclick="closeEditPointModal()">&times;</button>
+          </div>
+          <input type="hidden" id="editPtId">
+          <div style="display:flex; flex-direction:column; gap:10px; font-size:11.5px;">
+            <div>
+              <label style="font-weight:700; color:#94a3b8; display:block; margin-bottom:3px;">Nombre del punto:</label>
+              <input type="text" id="editPtName" class="input" style="width:100%; font-weight:700; color:#38bdf8;">
+            </div>
+            
+            <div style="display:flex; gap:8px;">
+              <div style="flex:1;">
+                <label style="font-weight:700; color:#94a3b8; display:block; margin-bottom:3px;">Magnitud:</label>
+                <select id="editPtType" class="select" style="width:100%;" onchange="onEditPtTypeChange(this.value)">
+                  <option value="vdc">⚡ Tensión DC</option>
+                  <option value="vac">〰️ Tensión AC</option>
+                  <option value="idc">🔋 Corriente DC</option>
+                  <option value="res">Ω Resistencia</option>
+                </select>
+              </div>
+              <div style="width:100px;">
+                <label style="font-weight:700; color:#94a3b8; display:block; margin-bottom:3px;">Unidad:</label>
+                <select id="editPtUnit" class="select" style="width:100%;">
+                  <option value="V">V</option>
+                  <option value="mV">mV</option>
+                  <option value="kV">kV</option>
+                </select>
+              </div>
+            </div>
+
+            <div>
+              <label style="font-weight:700; color:#38bdf8; display:block; margin-bottom:3px;">Valor Medido:</label>
+              <input type="text" id="editPtValue" class="input" style="width:100%; font-weight:800; font-family:monospace; font-size:14px; color:#38bdf8; background:#020617; border:1.5px solid #0284c7;" placeholder="ej. 3.32">
+            </div>
+
+            <div>
+              <label style="font-weight:700; color:#94a3b8; display:block; margin-bottom:3px;">Estado:</label>
+              <select id="editPtStatus" class="select" style="width:100%;">
+                <option value="none">-- Desactivado (Sin estado) --</option>
+                <option value="ok">✓ Correcto</option>
+                <option value="fail">✕ Fallo</option>
+                <option value="investigate">⚠ Investigar</option>
+              </select>
+            </div>
+
+            <div>
+              <label style="font-weight:700; color:#94a3b8; display:block; margin-bottom:3px;">Comentario / Observación:</label>
+              <input type="text" id="editPtComment" class="input" style="width:100%;" placeholder="Nota u observación técnica...">
+            </div>
+          </div>
+
+          <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:6px; border-top:1px solid #1e293b; padding-top:10px;">
+            <button class="btn" type="button" onclick="resetPointNotePos()" style="margin-right:auto; font-size:11px; color:#94a3b8;" title="Devuelve la caja de la nota a su posición automática por defecto">↺ Posición auto</button>
+            <button class="btn" onclick="closeEditPointModal()">Cancelar</button>
+            <button class="btn btn-active" onclick="saveEditedPoint()" style="background:#0284c7; border-color:#38bdf8; font-weight:700;">💾 Guardar Cambios</button>
           </div>
         </div>
       </div>
@@ -4774,7 +5422,8 @@
             time: Array.from(ch.data.time),
             voltage: Array.from(ch.data.voltage)
           } : null
-        }))
+        })),
+        dmmSession: typeof exportDmmSessionPayload === "function" ? exportDmmSessionPayload() : null
       };
 
       const jsonStr = JSON.stringify(sessionData);
@@ -4793,7 +5442,16 @@
       const reader = new FileReader();
       reader.onload = (e) => {
         try {
-          importSessionJSON(e.target.result);
+          const raw = e.target.result;
+          const parsed = typeof raw === "string" ? JSON.parse(raw) : raw;
+          if (parsed && (parsed.app === "WaveSight_DMM" || (parsed.testPoints && !parsed.channels))) {
+            if (typeof importDmmSessionPayload === "function") {
+              importDmmSessionPayload(parsed);
+              showToast("Batería de medidas DMM cargada correctamente");
+            }
+            return;
+          }
+          importSessionJSON(raw);
         } catch (err) {
           console.error("Error reading JSON session:", err);
           alert("Failed to parse JSON session file: " + err.message);
@@ -4949,6 +5607,11 @@
         } else {
           state.lines = [];
         }
+
+        if (data.dmmSession && typeof importDmmSessionPayload === "function") {
+          importDmmSessionPayload(data.dmmSession);
+        }
+
         updateDottedLineUI();
 
         updateCursorDropdownOptions();
@@ -5370,6 +6033,1215 @@
         document.onmousemove = null;
       }
     }
+
+    /* ==========================================================================
+       BK PRECISION 2831E / MULTIMETER & TEST POINTS MODULE
+       ========================================================================== */
+    const dmmState = {
+      rounding: "2", // "1", "2", "none" (predefinido a 2 decimales)
+
+      // Estado actual de la lectura
+      current: {
+        value: 0.0,
+        unit: "V",
+        type: "vdc",
+        raw: "--",
+        displayDigits: " 00.00",
+        displayUnits: "V DC",
+        displayStatus: "MODO MANUAL | [ENTER] REGISTRAR MEDIDA",
+        lastRawRx: ""
+      },
+
+      // Puntos de prueba / Validación
+      captureStatus: "none", // "none", "ok", "fail", "investigate"
+      activeGraphType: "vdc", // "vdc", "vac", "idc", "res", "mosaic"
+      testPoints: [],
+      nextTpIndex: 1,
+      graphClickTargets: []
+    };
+
+    function initDmmModule() {
+      const win = document.getElementById("dmmModal");
+      const handle = document.getElementById("dmmDragHeader");
+      if (win && handle) makeElementDraggable(win, handle);
+
+      // Listener de entrada en vivo y borrado al hacer clic en Medida, Punto y Comentario
+      const valInput = document.getElementById("dmmTpValueInput");
+      if (valInput) {
+        valInput.addEventListener("input", (e) => {
+          onDmmManualValueInput(e.target.value);
+        });
+        valInput.addEventListener("click", () => {
+          valInput.value = "";
+          onDmmManualValueInput("");
+        });
+      }
+
+      const nameInput = document.getElementById("dmmTpNameInput");
+      if (nameInput) {
+        nameInput.addEventListener("click", () => {
+          nameInput.value = "";
+        });
+      }
+
+      const commentInput = document.getElementById("dmmTpCommentInput");
+      if (commentInput) {
+        commentInput.addEventListener("click", () => {
+          commentInput.value = "";
+        });
+      }
+
+      // Listeners de teclado
+      window.addEventListener("keydown", (e) => {
+        if (!win || win.classList.contains("hidden")) return;
+        const tag = document.activeElement ? document.activeElement.tagName : "";
+        if (tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT") {
+          if (e.key === "Enter") {
+            const id = document.activeElement.id;
+            if (id === "dmmTpValueInput" || id === "dmmTpCommentInput" || id === "dmmTpNameInput") {
+              e.preventDefault();
+              captureDmmTestPoint();
+            } else if (id && id.startsWith("editPt")) {
+              e.preventDefault();
+              saveEditedPoint();
+            }
+          } else if (e.key === "Escape") {
+            const editModal = document.getElementById("dmmEditPointModal");
+            if (editModal && !editModal.classList.contains("hidden")) {
+              e.preventDefault();
+              closeEditPointModal();
+            }
+          }
+          return;
+        }
+
+        if (e.code === "Space" || e.key === "Enter") {
+          e.preventDefault();
+          captureDmmTestPoint();
+        } else if (e.key === "Escape") {
+          const editModal = document.getElementById("dmmEditPointModal");
+          if (editModal && !editModal.classList.contains("hidden")) {
+            closeEditPointModal();
+          } else {
+            toggleDmmModal();
+          }
+        }
+      });
+
+      // Canvas interacción con notas (arrastrar para mover / clic para editar)
+      const graphCanvas = document.getElementById("dmmGraphCanvas");
+      if (graphCanvas) {
+        let isMouseDown = false;
+        let startX = 0, startY = 0;
+        let targetHit = null;
+        let hasMoved = false;
+
+        graphCanvas.addEventListener("mousedown", (e) => {
+          const rect = graphCanvas.getBoundingClientRect();
+          const x = e.clientX - rect.left;
+          const y = e.clientY - rect.top;
+
+          targetHit = dmmState.graphClickTargets.find(t => x >= t.x && x <= t.x + t.w && y >= t.y && y <= t.y + t.h);
+          if (targetHit) {
+            isMouseDown = true;
+            startX = x;
+            startY = y;
+            hasMoved = false;
+            const curDx = targetHit.point.noteDx !== undefined ? targetHit.point.noteDx : (targetHit.x - targetHit.dotX);
+            const curDy = targetHit.point.noteDy !== undefined ? targetHit.point.noteDy : (targetHit.y - targetHit.dotY);
+            targetHit.origDx = curDx;
+            targetHit.origDy = curDy;
+            graphCanvas.style.cursor = "grabbing";
+            e.preventDefault();
+          }
+        });
+
+        window.addEventListener("mousemove", (e) => {
+          if (!graphCanvas || graphCanvas.offsetParent === null) return;
+          const rect = graphCanvas.getBoundingClientRect();
+          const x = e.clientX - rect.left;
+          const y = e.clientY - rect.top;
+
+          if (isMouseDown && targetHit) {
+            const dx = x - startX;
+            const dy = y - startY;
+            if (Math.hypot(dx, dy) > 3) {
+              hasMoved = true;
+            }
+            if (hasMoved) {
+              targetHit.point.noteDx = Math.round(targetHit.origDx + dx);
+              targetHit.point.noteDy = Math.round(targetHit.origDy + dy);
+              renderDmmGraph();
+            }
+          } else if (x >= 0 && x <= rect.width && y >= 0 && y <= rect.height) {
+            const hover = dmmState.graphClickTargets.find(t => x >= t.x && x <= t.x + t.w && y >= t.y && y <= t.y + t.h);
+            graphCanvas.style.cursor = hover ? "grab" : "crosshair";
+          }
+        });
+
+        window.addEventListener("mouseup", () => {
+          if (isMouseDown && targetHit) {
+            if (!hasMoved) {
+              editDmmPoint(targetHit.point.id);
+            }
+            isMouseDown = false;
+            targetHit = null;
+            if (graphCanvas) graphCanvas.style.cursor = "crosshair";
+          }
+        });
+      }
+
+      window.addEventListener("resize", () => {
+        if (win && !win.classList.contains("hidden")) {
+          renderDmmGraph();
+        }
+      });
+    }
+
+    function toggleDmmModal() {
+      const modal = document.getElementById("dmmModal");
+      if (!modal) return;
+      if (modal.classList.contains("hidden")) {
+        modal.classList.remove("hidden");
+        setTimeout(() => {
+          renderDmmGraph();
+          renderDmmTable();
+          // Enfocar inmediatamente el campo de valor manual para escribir sin fricción
+          const valInput = document.getElementById("dmmTpValueInput");
+          if (valInput) {
+            valInput.focus();
+            valInput.select();
+          }
+        }, 50);
+      } else {
+        modal.classList.add("hidden");
+      }
+    }
+
+    function setDmmMagnitude(type) {
+      onDmmTypeChange(type);
+    }
+
+    function setDmmRounding(rounding) {
+      dmmState.rounding = rounding;
+      const pills = ["1", "2", "none"];
+      pills.forEach(r => {
+        const lbl = document.getElementById("radioLabel_round" + (r === "none" ? "None" : r));
+        const radio = document.querySelector(`input[name="dmmRounding"][value="${r}"]`);
+        if (lbl) {
+          if (r === rounding) lbl.classList.add("active");
+          else lbl.classList.remove("active");
+        }
+        if (radio) radio.checked = (r === rounding);
+      });
+
+      // Actualizar en vivo dígitos si hay un valor en el input
+      const valInput = document.getElementById("dmmTpValueInput");
+      onDmmManualValueInput(valInput ? valInput.value : "");
+
+      // Re-renderizar la gráfica y tabla de medidas con el nuevo redondeo
+      renderDmmGraph();
+      renderDmmTable();
+    }
+
+    function formatDmmNumber(num, rounding = dmmState.rounding) {
+      if (isNaN(num) || !isFinite(num)) return "00.00";
+      if (rounding === "1") {
+        return num.toFixed(1);
+      } else if (rounding === "2") {
+        return num.toFixed(2);
+      } else {
+        // "none" (sin redondeo): limpiar ruido de coma flotante binaria preservando los dígitos exactos
+        return parseFloat(Number(num).toPrecision(10)).toString();
+      }
+    }
+
+    function getDmmPointFormatted(pt, rounding = dmmState.rounding) {
+      if (!pt) return "--";
+      const unit = pt.unit || "";
+      const num = (pt.displayValue !== undefined && pt.displayValue !== null) ? pt.displayValue : pt.value;
+      if (num === undefined || num === null || isNaN(num)) return pt.formatted || "--";
+
+      if (rounding === "1") {
+        return `${Number(num).toFixed(1)} ${unit}`.trim();
+      } else if (rounding === "2") {
+        return `${Number(num).toFixed(2)} ${unit}`.trim();
+      } else {
+        // "none" (sin redondeo): usar valor original introducido
+        if (pt.rawInput && String(pt.rawInput).trim() !== "") {
+          return `${String(pt.rawInput).trim()} ${unit}`.trim();
+        }
+        const clean = parseFloat(Number(num).toPrecision(10)).toString();
+        return `${clean} ${unit}`.trim();
+      }
+    }
+
+    function onDmmTypeChange(type) {
+      dmmState.current.type = type;
+      const hiddenInput = document.getElementById("dmmTpTypeSelect");
+      if (hiddenInput) hiddenInput.value = type;
+
+      // Sincronizar radio pills
+      const types = ["vdc", "vac", "idc", "res"];
+      types.forEach(t => {
+        const lbl = document.getElementById("radioLabel_" + t);
+        const radio = document.querySelector(`input[name="dmmMagnitude"][value="${t}"]`);
+        if (lbl) {
+          if (t === type) lbl.classList.add("active");
+          else lbl.classList.remove("active");
+        }
+        if (radio) radio.checked = (t === type);
+      });
+
+      if (type === "vdc") {
+        dmmState.current.unit = "V";
+        dmmState.current.displayUnits = "V DC";
+      } else if (type === "vac") {
+        dmmState.current.unit = "V";
+        dmmState.current.displayUnits = "V AC";
+      } else if (type === "idc") {
+        dmmState.current.unit = "A";
+        dmmState.current.displayUnits = "A DC";
+      } else if (type === "res") {
+        dmmState.current.unit = "Ω";
+        dmmState.current.displayUnits = "Ω";
+      }
+
+      if (dmmState.activeGraphType !== "mosaic") {
+        setDmmActiveGraph(type);
+      }
+
+      const valInput = document.getElementById("dmmTpValueInput");
+      onDmmManualValueInput(valInput ? valInput.value : "");
+    }
+
+    function onDmmManualValueInput(valStr) {
+      const type = document.getElementById("dmmTpTypeSelect") ? document.getElementById("dmmTpTypeSelect").value : "vdc";
+      const defaultUnit = type === "res" ? "Ω" : type === "idc" ? "A" : "V";
+
+      if (!valStr || valStr.trim() === "") {
+        const zeros = dmmState.rounding === "1" ? " 00.0" : dmmState.rounding === "2" ? " 00.00" : " 00.000";
+        dmmState.current.displayDigits = zeros;
+        dmmState.current.displayUnits = defaultUnit + (type === "vdc" ? " DC" : type === "vac" ? " AC" : type === "idc" ? " DC" : "");
+        updateDmmDisplayUI();
+        return;
+      }
+
+      const parsed = parseManualEntry(valStr, type, defaultUnit);
+      if (!parsed.error) {
+        dmmState.current.value = parsed.baseValue;
+        dmmState.current.unit = parsed.unit;
+        let sign = parsed.displayValue >= 0 ? "+" : "-";
+        let abs = Math.abs(parsed.displayValue);
+        let formatted = formatDmmNumber(abs, dmmState.rounding);
+        dmmState.current.displayDigits = `${sign}${formatted.padStart(6, "0")}`;
+        dmmState.current.displayUnits = parsed.unit + (type === "vdc" ? " DC" : type === "vac" ? " AC" : type === "idc" ? " DC" : "");
+      } else {
+        dmmState.current.displayDigits = " " + valStr.slice(0, 7);
+      }
+      updateDmmDisplayUI();
+    }
+
+    function onEditPtTypeChange(type) {
+      const unitSelect = document.getElementById("editPtUnit");
+      if (!unitSelect) return;
+      if (type === "vdc" || type === "vac") {
+        unitSelect.innerHTML = `<option value="V" selected>V</option><option value="mV">mV</option><option value="µV">µV</option><option value="kV">kV</option>`;
+      } else if (type === "idc") {
+        unitSelect.innerHTML = `<option value="mA" selected>mA</option><option value="A">A</option><option value="µA">µA</option>`;
+      } else if (type === "res") {
+        unitSelect.innerHTML = `<option value="Ω" selected>Ω</option><option value="kΩ">kΩ</option><option value="MΩ">MΩ</option><option value="mΩ">mΩ</option>`;
+      }
+    }
+
+    function parseManualEntry(str, type, fallbackUnit) {
+      if (!str || str.trim() === "") return { error: "Introduce un valor numérico para la medida." };
+      let clean = str.trim().replace(",", ".");
+
+      const match = clean.match(/^([-+]?[0-9]*\.?[0-9]+)\s*([a-zA-ZµΩ]*)$/);
+      if (!match) {
+        return { error: `Formato no reconocido: "${str}". Ejemplos válidos: 3.3, 10k, 10K, 2.2M, 45m, 100u` };
+      }
+
+      const num = parseFloat(match[1]);
+      if (isNaN(num) || !isFinite(num)) {
+        return { error: `Valor numérico no válido: "${str}"` };
+      }
+
+      const rawSuffix = (match[2] || "").trim();
+      let unit = fallbackUnit || (type === "res" ? "Ω" : type === "idc" ? "mA" : "V");
+      let mult = 1;
+
+      if (rawSuffix) {
+        const firstChar = rawSuffix.charAt(0);
+        const lowerSuffix = rawSuffix.toLowerCase();
+
+        // 1. u o µ: micro (1e-6)
+        if (firstChar === "u" || firstChar === "µ" || lowerSuffix.startsWith("micro")) {
+          mult = 1e-6;
+          unit = type === "idc" ? "µA" : type === "res" ? "µΩ" : "µV";
+        }
+        // 2. m minúscula: mili (1e-3)
+        else if (firstChar === "m") {
+          mult = 1e-3;
+          unit = type === "idc" ? "mA" : type === "res" ? "mΩ" : "mV";
+        }
+        // 3. k o K: kilo (1e3)
+        else if (firstChar === "k" || firstChar === "K" || lowerSuffix.startsWith("kilo")) {
+          mult = 1e3;
+          unit = type === "res" ? "kΩ" : type === "idc" ? "kA" : "kV";
+        }
+        // 4. M mayúscula: Mega (1e6) o 'meg'/'mohm'
+        else if (firstChar === "M" || lowerSuffix.startsWith("meg") || lowerSuffix.startsWith("mohm")) {
+          mult = 1e6;
+          unit = type === "res" ? "MΩ" : type === "idc" ? "MA" : "MV";
+        }
+        // Unidades base directas
+        else if (lowerSuffix.startsWith("v")) {
+          unit = "V";
+          mult = 1;
+        } else if (lowerSuffix.startsWith("a")) {
+          unit = "A";
+          mult = 1;
+        } else if (lowerSuffix.startsWith("Ω") || lowerSuffix.startsWith("ohm")) {
+          unit = "Ω";
+          mult = 1;
+        }
+      } else {
+        unit = fallbackUnit || unit;
+        if (unit === "mV" || unit === "mA" || unit === "mΩ") mult = 1e-3;
+        else if (unit === "kV" || unit === "kΩ" || unit === "kA") mult = 1e3;
+        else if (unit === "MΩ" || unit === "MV" || unit === "MA") mult = 1e6;
+        else if (unit === "µA" || unit === "µV" || unit === "µΩ" || unit === "uA") mult = 1e-6;
+        else mult = 1;
+      }
+
+      const baseValue = num * mult;
+      return {
+        displayValue: num,
+        unit: unit,
+        baseValue: baseValue,
+        formatted: `${Math.abs(num) >= 1000 ? num.toFixed(1) : Math.abs(num) >= 100 ? num.toFixed(2) : num.toFixed(3)} ${unit}`
+      };
+    }
+
+    function updateDmmDisplayUI() {
+      const digitsEl = document.getElementById("dmmDisplayDigits");
+      const unitsEl = document.getElementById("dmmDisplayUnits");
+      const statusEl = document.getElementById("dmmDisplayStatus");
+      const topBadge = document.getElementById("dmmTopLiveBadge");
+
+      if (digitsEl) digitsEl.textContent = dmmState.current.displayDigits;
+      if (unitsEl) unitsEl.textContent = dmmState.current.displayUnits;
+      if (statusEl) statusEl.textContent = "MODO MANUAL | [ENTER] REGISTRAR MEDIDA";
+      if (topBadge) topBadge.textContent = `${dmmState.current.displayDigits} ${dmmState.current.displayUnits}`;
+    }
+
+    /* --------------------------------------------------------------------------
+       PUNTOS DE VALIDACIÓN & AVERÍAS (TEST POINTS)
+       -------------------------------------------------------------------------- */
+    function setDmmCaptureStatus(status) {
+      if (dmmState.captureStatus === status) {
+        // Al pulsar sobre el estado activo, se desactiva
+        dmmState.captureStatus = "none";
+      } else {
+        dmmState.captureStatus = status;
+      }
+      const okPill = document.getElementById("pillStatusOk");
+      const failPill = document.getElementById("pillStatusFail");
+      const invPill = document.getElementById("pillStatusInvestigate");
+
+      if (okPill) okPill.className = "dmm-check-pill" + (dmmState.captureStatus === "ok" ? " active-ok" : "");
+      if (failPill) failPill.className = "dmm-check-pill" + (dmmState.captureStatus === "fail" ? " active-fail" : "");
+      if (invPill) invPill.className = "dmm-check-pill" + (dmmState.captureStatus === "investigate" ? " active-investigate" : "");
+    }
+
+    function setDmmActiveGraph(type) {
+      dmmState.activeGraphType = type;
+      const subtabs = ["vdc", "vac", "idc", "res", "mosaic"];
+      subtabs.forEach(t => {
+        const el = document.getElementById("subtab" + t.charAt(0).toUpperCase() + t.slice(1));
+        if (el) {
+          if (t === type) el.classList.add("active");
+          else el.classList.remove("active");
+        }
+      });
+      renderDmmGraph();
+    }
+
+    function captureDmmTestPoint() {
+      const nameInput = document.getElementById("dmmTpNameInput");
+      const typeSelect = document.getElementById("dmmTpTypeSelect");
+      const valueInput = document.getElementById("dmmTpValueInput");
+      const commentInput = document.getElementById("dmmTpCommentInput");
+
+      // El punto puede estar en blanco y no tiene por qué ser autoincrementable
+      const ptName = nameInput ? nameInput.value.trim() : "";
+      const ptType = typeSelect ? typeSelect.value : dmmState.current.type;
+      const ptComment = commentInput ? commentInput.value.trim() : "";
+      const defaultUnit = ptType === "res" ? "Ω" : ptType === "idc" ? "A" : "V";
+
+      let rawValStr = valueInput ? valueInput.value.trim() : "";
+      let ptVal = 0;
+      let ptUnit = defaultUnit;
+      let baseVal = 0;
+      let formattedVal = "";
+
+      if (rawValStr !== "") {
+        const parsed = parseManualEntry(rawValStr, ptType, defaultUnit);
+        if (parsed.error) {
+          alert(parsed.error);
+          if (valueInput) valueInput.focus();
+          return;
+        }
+        ptVal = parsed.displayValue;
+        ptUnit = parsed.unit;
+        baseVal = parsed.baseValue;
+        formattedVal = parsed.formatted;
+      } else {
+        alert("Por favor, introduce el valor de la medida (ej. 3.3, 10k, 2.2M, 100u) antes de registrar.");
+        if (valueInput) valueInput.focus();
+        return;
+      }
+
+      const now = new Date();
+      const timeStr = now.toLocaleTimeString();
+
+      const point = {
+        id: "pt_" + Date.now() + "_" + Math.random().toString(36).substr(2, 4),
+        name: ptName,
+        type: ptType,
+        value: baseVal,
+        displayValue: ptVal,
+        rawInput: rawValStr,
+        unit: ptUnit,
+        formatted: getDmmPointFormatted({ displayValue: ptVal, value: baseVal, unit: ptUnit, rawInput: rawValStr }, dmmState.rounding),
+        status: dmmState.captureStatus || "none",
+        comment: ptComment,
+        timestamp: now.toISOString(),
+        timeStr: timeStr
+      };
+
+      dmmState.testPoints.push(point);
+
+      // Feedback de audio suave
+      if (point.status === "ok") {
+        playDmmBeep(880);
+      } else if (point.status === "fail") {
+        playDmmBeep(330);
+      } else if (point.status === "investigate") {
+        playDmmBeep(660);
+      } else {
+        playDmmBeep(750);
+      }
+
+      // No sobreescribir el input de nombre con auto-incremento
+      dmmState.nextTpIndex++;
+
+      // Limpiar comentario para el siguiente
+      if (commentInput) commentInput.value = "";
+
+      // Enfocar y seleccionar el input de valor para entrada consecutiva ultrarrápida
+      if (valueInput) {
+        valueInput.focus();
+        valueInput.select();
+      }
+
+      // Cambiar a la gráfica correspondiente automáticamente si no está en mosaico
+      if (dmmState.activeGraphType !== "mosaic" && dmmState.activeGraphType !== ptType) {
+        setDmmActiveGraph(ptType);
+      } else {
+        renderDmmGraph();
+      }
+
+      renderDmmTable();
+      updateDmmSubtabCounters();
+
+      const toastLabel = point.name ? `[${point.name}] ` : "";
+      showToast(`Medida registrada: ${toastLabel}${getDmmPointFormatted(point, dmmState.rounding)}`);
+    }
+
+    function playDmmBeep(freq = 880) {
+      try {
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = "sine";
+        osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+        gain.gain.setValueAtTime(0.04, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + 0.08);
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start();
+        osc.stop(audioCtx.currentTime + 0.08);
+      } catch (e) {}
+    }
+
+    function updateDmmSubtabCounters() {
+      const counts = { vdc: 0, vac: 0, idc: 0, res: 0 };
+      dmmState.testPoints.forEach(p => {
+        if (counts[p.type] !== undefined) counts[p.type]++;
+      });
+      const cntVdc = document.getElementById("cntVdc");
+      const cntVac = document.getElementById("cntVac");
+      const cntIdc = document.getElementById("cntIdc");
+      const cntRes = document.getElementById("cntRes");
+      const totalEl = document.getElementById("dmmTpTotalCount");
+
+      if (cntVdc) cntVdc.textContent = counts.vdc;
+      if (cntVac) cntVac.textContent = counts.vac;
+      if (cntIdc) cntIdc.textContent = counts.idc;
+      if (cntRes) cntRes.textContent = counts.res;
+      if (totalEl) totalEl.textContent = dmmState.testPoints.length;
+    }
+
+    function deleteDmmPoint(id) {
+      dmmState.testPoints = dmmState.testPoints.filter(p => p.id !== id);
+      updateDmmSubtabCounters();
+      renderDmmGraph();
+      renderDmmTable();
+      showToast("Punto de medición eliminado");
+    }
+
+    function clearDmmPoints() {
+      if (dmmState.testPoints.length === 0) return;
+      if (confirm("¿Deseas borrar todos los puntos de medición de la batería actual?")) {
+        dmmState.testPoints = [];
+        dmmState.nextTpIndex = 1;
+        const nameInput = document.getElementById("dmmTpNameInput");
+        if (nameInput) nameInput.value = "TP1";
+        updateDmmSubtabCounters();
+        renderDmmGraph();
+        renderDmmTable();
+        showToast("Puntos de medición borrados");
+      }
+    }
+
+    function editDmmPoint(id) {
+      const pt = dmmState.testPoints.find(p => p.id === id);
+      if (!pt) return;
+
+      const modal = document.getElementById("dmmEditPointModal");
+      const idInput = document.getElementById("editPtId");
+      const nameInput = document.getElementById("editPtName");
+      const typeSelect = document.getElementById("editPtType");
+      const unitSelect = document.getElementById("editPtUnit");
+      const valInput = document.getElementById("editPtValue");
+      const statusSelect = document.getElementById("editPtStatus");
+      const commentInput = document.getElementById("editPtComment");
+      const badge = document.getElementById("editPtBadge");
+
+      if (idInput) idInput.value = pt.id;
+      if (badge) badge.textContent = pt.name || `#${pt.id.slice(-4)}`;
+      if (nameInput) nameInput.value = pt.name || "";
+      if (typeSelect) {
+        typeSelect.value = pt.type;
+        onEditPtTypeChange(pt.type);
+      }
+      if (unitSelect) unitSelect.value = pt.unit || "V";
+      if (valInput) valInput.value = pt.displayValue !== undefined ? pt.displayValue : pt.value;
+      if (statusSelect) statusSelect.value = pt.status || "none";
+      if (commentInput) commentInput.value = pt.comment || "";
+
+      if (modal) modal.classList.remove("hidden");
+      if (valInput) {
+        valInput.focus();
+        valInput.select();
+      }
+    }
+
+    function closeEditPointModal() {
+      const modal = document.getElementById("dmmEditPointModal");
+      if (modal) modal.classList.add("hidden");
+    }
+
+    function resetPointNotePos() {
+      const idInput = document.getElementById("editPtId");
+      if (!idInput) return;
+      const pt = dmmState.testPoints.find(p => p.id === idInput.value);
+      if (!pt) return;
+      delete pt.noteDx;
+      delete pt.noteDy;
+      renderDmmGraph();
+      showToast(`Posición automática restablecida para [${pt.name || pt.formatted}]`);
+    }
+
+    function saveEditedPoint() {
+      const idInput = document.getElementById("editPtId");
+      if (!idInput) return;
+      const pt = dmmState.testPoints.find(p => p.id === idInput.value);
+      if (!pt) return;
+
+      const nameInput = document.getElementById("editPtName");
+      const typeSelect = document.getElementById("editPtType");
+      const unitSelect = document.getElementById("editPtUnit");
+      const valInput = document.getElementById("editPtValue");
+      const statusSelect = document.getElementById("editPtStatus");
+      const commentInput = document.getElementById("editPtComment");
+
+      const ptType = typeSelect ? typeSelect.value : pt.type;
+      const selectedUnit = unitSelect ? unitSelect.value : pt.unit;
+      const rawVal = valInput ? valInput.value.trim() : "";
+
+      const parsed = parseManualEntry(rawVal, ptType, selectedUnit);
+      if (parsed.error) {
+        alert(parsed.error);
+        if (valInput) valInput.focus();
+        return;
+      }
+
+      pt.name = nameInput ? nameInput.value.trim() : "";
+      pt.type = ptType;
+      pt.unit = parsed.unit;
+      pt.displayValue = parsed.displayValue;
+      pt.rawInput = rawVal;
+      pt.value = parsed.baseValue;
+      pt.formatted = getDmmPointFormatted(pt, dmmState.rounding);
+      pt.status = statusSelect ? statusSelect.value : (pt.status || "none");
+      pt.comment = commentInput ? commentInput.value.trim() : "";
+
+      closeEditPointModal();
+      renderDmmGraph();
+      renderDmmTable();
+      updateDmmSubtabCounters();
+      const toastName = pt.name ? `[${pt.name}] ` : "";
+      showToast(`Punto ${toastName}actualizado: ${getDmmPointFormatted(pt, dmmState.rounding)}`);
+    }
+
+    /* --------------------------------------------------------------------------
+       RENDERIZADO DE LA MULTI-GRÁFICA CON LLAMADAS Y NOTAS
+       -------------------------------------------------------------------------- */
+    function renderDmmGraph() {
+      const canvas = document.getElementById("dmmGraphCanvas");
+      if (!canvas) return;
+      const ctx = canvas.getContext("2d");
+      const dpr = window.devicePixelRatio || 1;
+      const rect = canvas.getBoundingClientRect();
+      const w = rect.width || 980;
+      const h = rect.height || 260;
+
+      canvas.width = w * dpr;
+      canvas.height = h * dpr;
+      ctx.resetTransform();
+      ctx.scale(dpr, dpr);
+
+      dmmState.graphClickTargets = [];
+
+      // Fondo
+      ctx.fillStyle = "#040711";
+      ctx.fillRect(0, 0, w, h);
+
+      if (dmmState.activeGraphType === "mosaic") {
+        renderMosaicDmmGraphs(ctx, w, h);
+      } else {
+        const typeInfo = getDmmTypeMeta(dmmState.activeGraphType);
+        const pts = dmmState.testPoints.filter(p => p.type === dmmState.activeGraphType);
+        renderSingleDmmGraph(ctx, 0, 0, w, h, pts, typeInfo.title, typeInfo.unit, typeInfo.color);
+      }
+    }
+
+    function getDmmTypeMeta(type) {
+      switch (type) {
+        case "vdc": return { title: "Tensión DC", unit: "V", color: "#38bdf8" };
+        case "vac": return { title: "Tensión AC", unit: "V rms", color: "#f43f5e" };
+        case "idc": return { title: "Corriente DC", unit: "A", color: "#22c55e" };
+        case "res": return { title: "Resistencia", unit: "Ω", color: "#eab308" };
+        default: return { title: "Mediciones", unit: "V", color: "#38bdf8" };
+      }
+    }
+
+    function renderSingleDmmGraph(ctx, gx, gy, gw, gh, pts, title, unitLabel, traceColor, showNotes = true) {
+      const padL = 60, padR = 25, padT = 36, padB = 40;
+      const plotW = gw - padL - padR;
+      const plotH = gh - padT - padB;
+
+      // Rejilla de fondo
+      ctx.strokeStyle = "#101827";
+      ctx.lineWidth = 1;
+      for (let i = 0; i <= 5; i++) {
+        const y = gy + padT + (plotH / 5) * i;
+        ctx.beginPath();
+        ctx.moveTo(gx + padL, y);
+        ctx.lineTo(gx + gw - padR, y);
+        ctx.stroke();
+      }
+
+      // Título y magnitud
+      ctx.fillStyle = traceColor;
+      ctx.font = "bold 11.5px sans-serif";
+      ctx.fillText(`${title} [${unitLabel}]`, gx + padL, gy + 20);
+
+      ctx.fillStyle = "#64748b";
+      ctx.font = "10px sans-serif";
+      ctx.fillText(`Puntos: ${pts.length}`, gx + gw - padR - 70, gy + 20);
+
+      if (pts.length === 0) {
+        ctx.fillStyle = "#475569";
+        ctx.font = "12px sans-serif";
+        ctx.textAlign = "center";
+        ctx.fillText(`No hay medidas de ${title} registradas.`, gx + gw / 2, gy + gh / 2);
+        ctx.textAlign = "left";
+        return;
+      }
+
+      // Rango de escala
+      let minVal = Infinity, maxVal = -Infinity;
+      pts.forEach(p => {
+        if (p.value < minVal) minVal = p.value;
+        if (p.value > maxVal) maxVal = p.value;
+      });
+
+      if (minVal === maxVal) {
+        minVal -= 1;
+        maxVal += 1;
+      } else {
+        const span = maxVal - minVal;
+        minVal -= span * 0.15;
+        maxVal += span * 0.25;
+      }
+
+      // Eje Y etiquetas
+      ctx.fillStyle = "#8496b0";
+      ctx.font = "9.5px monospace";
+      ctx.textAlign = "right";
+      for (let i = 0; i <= 5; i++) {
+        const y = gy + padT + (plotH / 5) * i;
+        const val = maxVal - (maxVal - minVal) * (i / 5);
+        ctx.fillText(val >= 1000 ? val.toFixed(1) : val.toFixed(3), gx + padL - 8, y + 3);
+      }
+      ctx.textAlign = "left";
+
+      // Coordenadas de los puntos
+      const coords = pts.map((p, idx) => {
+        const x = pts.length === 1 ? gx + padL + plotW / 2 : gx + padL + (plotW / (pts.length - 1)) * idx;
+        const normY = (p.value - minVal) / (maxVal - minVal);
+        const y = gy + padT + plotH - normY * plotH;
+        return { x, y, pt: p, idx };
+      });
+
+      // Trazar línea conectora
+      ctx.strokeStyle = traceColor;
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      coords.forEach((c, idx) => {
+        if (idx === 0) ctx.moveTo(c.x, c.y);
+        else ctx.lineTo(c.x, c.y);
+      });
+      ctx.stroke();
+
+      // Dibujar puntos y etiquetas del eje X
+      coords.forEach((c) => {
+        const statusColor = c.pt.status === "ok" ? "#22c55e" : c.pt.status === "fail" ? "#ef4444" : c.pt.status === "investigate" ? "#f59e0b" : "#38bdf8";
+
+        // Punto exterior e interior
+        ctx.fillStyle = statusColor;
+        ctx.beginPath();
+        ctx.arc(c.x, c.y, 5, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.strokeStyle = "#040711";
+        ctx.lineWidth = 1.5;
+        ctx.stroke();
+
+        // Etiqueta del eje X (nombre o número de índice si está en blanco)
+        ctx.fillStyle = "#94a3b8";
+        ctx.font = "10px sans-serif";
+        ctx.textAlign = "center";
+        ctx.fillText(c.pt.name || `#${c.idx + 1}`, c.x, gy + gh - padB + 16);
+        ctx.textAlign = "left";
+      });
+
+      // En vista Mosaico (showNotes === false), NO mostramos las notas para evitar saturación
+      if (!showNotes) return;
+
+      // Dibujar notas / llamadas flotantes ajustadas al ancho del texto
+      coords.forEach((c, idx) => {
+        const statusColor = c.pt.status === "ok" ? "#22c55e" : c.pt.status === "fail" ? "#ef4444" : c.pt.status === "investigate" ? "#f59e0b" : "#38bdf8";
+        const isUpper = idx % 2 === 0;
+        const formattedVal = getDmmPointFormatted(c.pt, dmmState.rounding);
+        const valText = c.pt.name ? `${c.pt.name}: ${formattedVal}` : formattedVal;
+
+        const statusIcon = c.pt.status === "ok" ? "✓" : c.pt.status === "fail" ? "✕" : c.pt.status === "investigate" ? "⚠" : "";
+        const hasIcon = statusIcon !== "";
+
+        // Medir ancho real del texto para ajustar el tamaño de la caja al contenido (optimización de espacio)
+        ctx.font = "bold 9.5px sans-serif";
+        const valWidth = ctx.measureText(valText).width;
+        let commentWidth = 0;
+        if (c.pt.comment) {
+          ctx.font = "italic 8.5px sans-serif";
+          commentWidth = ctx.measureText(c.pt.comment).width;
+        }
+
+        const noteBoxW = Math.max(hasIcon ? 68 : 46, Math.ceil(Math.max(valWidth + (hasIcon ? 24 : 14), commentWidth + 14)));
+        const noteBoxH = c.pt.comment ? 38 : 22;
+
+        // Posición por defecto
+        const defaultX = Math.max(gx + padL, Math.min(gx + gw - padR - noteBoxW, c.x - noteBoxW / 2));
+        const defaultY = isUpper ? Math.max(gy + padT + 5, c.y - noteBoxH - 18) : Math.min(gy + gh - padB - noteBoxH - 5, c.y + 18);
+
+        // Si el usuario ha movido la nota (noteDx, noteDy), aplicar su desplazamiento persistente
+        let noteBoxX = c.pt.noteDx !== undefined ? (c.x + c.pt.noteDx) : defaultX;
+        let noteBoxY = c.pt.noteDy !== undefined ? (c.y + c.pt.noteDy) : defaultY;
+
+        // Limitar dentro del área de la gráfica
+        noteBoxX = Math.max(gx + 4, Math.min(gx + gw - noteBoxW - 4, noteBoxX));
+        noteBoxY = Math.max(gy + 4, Math.min(gy + gh - noteBoxH - 4, noteBoxY));
+
+        // Línea directriz desde el punto a la nota conectada de forma inteligente
+        ctx.strokeStyle = statusColor;
+        ctx.lineWidth = 1;
+        ctx.setLineDash([2, 2]);
+        ctx.beginPath();
+        ctx.moveTo(c.x, c.y);
+
+        let targetX = Math.max(noteBoxX, Math.min(noteBoxX + noteBoxW, c.x));
+        let targetY;
+        if (noteBoxY >= c.y) {
+          targetY = noteBoxY;
+        } else if (noteBoxY + noteBoxH <= c.y) {
+          targetY = noteBoxY + noteBoxH;
+        } else {
+          targetY = noteBoxY + noteBoxH / 2;
+          targetX = c.x < noteBoxX ? noteBoxX : noteBoxX + noteBoxW;
+        }
+
+        ctx.lineTo(targetX, targetY);
+        ctx.stroke();
+        ctx.setLineDash([]);
+
+        // Caja de la nota
+        ctx.fillStyle = "rgba(11, 19, 36, 0.95)";
+        ctx.strokeStyle = statusColor;
+        ctx.lineWidth = 1.2;
+        roundRect(ctx, noteBoxX, noteBoxY, noteBoxW, noteBoxH, 4, true, true);
+
+        // Texto cabecera: Nombre + Valor
+        ctx.fillStyle = "#e2e8f0";
+        ctx.font = "bold 9.5px sans-serif";
+        ctx.fillText(valText, noteBoxX + 6, noteBoxY + 13);
+
+        // Icono de estado (si no está desactivado)
+        if (hasIcon) {
+          ctx.fillStyle = statusColor;
+          ctx.font = "bold 10px sans-serif";
+          ctx.fillText(statusIcon, noteBoxX + noteBoxW - 13, noteBoxY + 13);
+        }
+
+        // Comentario opcional
+        if (c.pt.comment) {
+          ctx.fillStyle = "#94a3b8";
+          ctx.font = "italic 8.5px sans-serif";
+          ctx.fillText(c.pt.comment, noteBoxX + 6, noteBoxY + 28, noteBoxW - 12);
+        }
+
+        // Registrar zona interactiva para arrastrar y hacer clic
+        dmmState.graphClickTargets.push({
+          x: noteBoxX,
+          y: noteBoxY,
+          w: noteBoxW,
+          h: noteBoxH,
+          dotX: c.x,
+          dotY: c.y,
+          point: c.pt
+        });
+      });
+    }
+
+    function renderMosaicDmmGraphs(ctx, w, h) {
+      const halfW = w / 2;
+      const halfH = h / 2;
+      const types = [
+        { type: "vdc", x: 0, y: 0 },
+        { type: "vac", x: halfW, y: 0 },
+        { type: "idc", x: 0, y: halfH },
+        { type: "res", x: halfW, y: halfH }
+      ];
+
+      types.forEach(t => {
+        const meta = getDmmTypeMeta(t.type);
+        const pts = dmmState.testPoints.filter(p => p.type === t.type);
+        renderSingleDmmGraph(ctx, t.x, t.y, halfW, halfH, pts, meta.title, meta.unit, meta.color, false);
+
+        // Divisores de cuadrícula
+        ctx.strokeStyle = "#1e293b";
+        ctx.lineWidth = 1;
+        ctx.strokeRect(t.x, t.y, halfW, halfH);
+      });
+    }
+
+    function roundRect(ctx, x, y, width, height, radius, fill, stroke) {
+      ctx.beginPath();
+      ctx.moveTo(x + radius, y);
+      ctx.lineTo(x + width - radius, y);
+      ctx.quadraticCurveTo(x + width, y, x + width, y + radius);
+      ctx.lineTo(x + width, y + height - radius);
+      ctx.quadraticCurveTo(x + width, y + height, x + width - radius, y + height);
+      ctx.lineTo(x + radius, y + height);
+      ctx.quadraticCurveTo(x, y + height, x, y + height - radius);
+      ctx.lineTo(x, y + radius);
+      ctx.quadraticCurveTo(x, y, x + radius, y);
+      ctx.closePath();
+      if (fill) ctx.fill();
+      if (stroke) ctx.stroke();
+    }
+
+    function onDmmGraphCanvasClick(e) {
+      const rect = e.target.getBoundingClientRect();
+      const x = e.clientX - rect.left;
+      const y = e.clientY - rect.top;
+
+      const hit = dmmState.graphClickTargets.find(t => x >= t.x && x <= t.x + t.w && y >= t.y && y <= t.y + t.h);
+      if (hit) {
+        editDmmPoint(hit.point.id);
+      }
+    }
+
+    /* --------------------------------------------------------------------------
+       TABLA DE RESULTADOS & EXPORTACIÓN A WORD
+       -------------------------------------------------------------------------- */
+    function renderDmmTable() {
+      const tbody = document.getElementById("dmmPointsTableBody");
+      if (!tbody) return;
+
+      if (dmmState.testPoints.length === 0) {
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="8" style="text-align:center; color:#64748b; padding:18px;">
+              No hay puntos registrados aún. Introduce el valor medido y pulsa <b>Registrar Medida [Enter]</b>.
+            </td>
+          </tr>
+        `;
+        return;
+      }
+
+      tbody.innerHTML = dmmState.testPoints.map((pt, idx) => {
+        const meta = getDmmTypeMeta(pt.type);
+        const statusBadge = pt.status === "ok" 
+          ? `<span class="dmm-status-badge ok">✓ Correcto</span>`
+          : pt.status === "fail"
+          ? `<span class="dmm-status-badge fail">✕ Fallo</span>`
+          : pt.status === "investigate"
+          ? `<span class="dmm-status-badge investigate">⚠ Investigar</span>`
+          : `<span class="dmm-status-badge" style="background:#1e293b; color:#94a3b8; border:1px solid #334155;">- Desactivado</span>`;
+
+        const displayReading = getDmmPointFormatted(pt, dmmState.rounding);
+        const displayName = pt.name ? escapeHtml(pt.name) : `<span style="color:#64748b; font-style:italic;">#${idx + 1}</span>`;
+
+        return `
+          <tr>
+            <td style="color:#64748b; font-weight:700;">${idx + 1}</td>
+            <td style="font-weight:700; color:#38bdf8;">${displayName}</td>
+            <td style="color:${meta.color}; font-weight:600;">${meta.title}</td>
+            <td style="font-family:monospace; font-weight:700;">${displayReading}</td>
+            <td>${statusBadge}</td>
+            <td style="color:#cbd5e1;">${escapeHtml(pt.comment || "-")}</td>
+            <td style="color:#64748b; font-size:10.5px;">${pt.timeStr}</td>
+            <td style="text-align:center;">
+              <button onclick="editDmmPoint('${pt.id}')" class="btn" style="padding:2px 5px; font-size:10px;" title="Editar punto y valor">✏️</button>
+              <button onclick="deleteDmmPoint('${pt.id}')" class="btn" style="padding:2px 5px; font-size:10px; color:#f87171;" title="Eliminar">🗑</button>
+            </td>
+          </tr>
+        `;
+      }).join("");
+    }
+
+    function escapeHtml(text) {
+      if (!text) return "";
+      return String(text).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+    }
+
+    async function copyDmmTableForWord() {
+      if (dmmState.testPoints.length === 0) {
+        alert("No hay puntos de medición registrados para copiar.");
+        return;
+      }
+
+      // Generar tabla HTML con estilos inline optimizada para Microsoft Word
+      let html = `
+        <table border="1" cellpadding="6" cellspacing="0" style="border-collapse:collapse; font-family:Calibri, Arial, sans-serif; font-size:11pt; width:100%; border:1px solid #94a3b8;">
+          <thead>
+            <tr style="background-color:#1e293b; color:#ffffff;">
+              <th style="padding:8px; text-align:center; border:1px solid #64748b;">#</th>
+              <th style="padding:8px; text-align:left; border:1px solid #64748b;">Punto de Prueba</th>
+              <th style="padding:8px; text-align:left; border:1px solid #64748b;">Magnitud</th>
+              <th style="padding:8px; text-align:right; border:1px solid #64748b;">Lectura</th>
+              <th style="padding:8px; text-align:center; border:1px solid #64748b;">Estado</th>
+              <th style="padding:8px; text-align:left; border:1px solid #64748b;">Comentario / Observación</th>
+              <th style="padding:8px; text-align:center; border:1px solid #64748b;">Hora</th>
+            </tr>
+          </thead>
+          <tbody>
+      `;
+
+      let tsv = "#\tPunto de Prueba\tMagnitud\tLectura\tEstado\tComentario\tHora\n";
+
+      dmmState.testPoints.forEach((pt, idx) => {
+        const meta = getDmmTypeMeta(pt.type);
+        const bgRow = idx % 2 === 0 ? "#ffffff" : "#f8fafc";
+        const statusLabel = pt.status === "ok" ? "CORRECTO" : pt.status === "fail" ? "FALLO" : pt.status === "investigate" ? "INVESTIGAR" : "-";
+        const statusBg = pt.status === "ok" ? "#dcfce7" : pt.status === "fail" ? "#fee2e2" : pt.status === "investigate" ? "#fef3c7" : "#f8fafc";
+        const statusColor = pt.status === "ok" ? "#166534" : pt.status === "fail" ? "#991b1b" : pt.status === "investigate" ? "#92400e" : "#64748b";
+        const displayReading = getDmmPointFormatted(pt, dmmState.rounding);
+        const displayName = pt.name ? escapeHtml(pt.name) : `#${idx + 1}`;
+
+        html += `
+          <tr style="background-color:${bgRow};">
+            <td style="padding:6px; text-align:center; border:1px solid #cbd5e1;">${idx + 1}</td>
+            <td style="padding:6px; font-weight:bold; border:1px solid #cbd5e1;">${displayName}</td>
+            <td style="padding:6px; border:1px solid #cbd5e1;">${meta.title}</td>
+            <td style="padding:6px; text-align:right; font-family:Consolas, monospace; font-weight:bold; border:1px solid #cbd5e1;">${displayReading}</td>
+            <td style="padding:6px; text-align:center; background-color:${statusBg}; color:${statusColor}; font-weight:bold; border:1px solid #cbd5e1;">${statusLabel}</td>
+            <td style="padding:6px; border:1px solid #cbd5e1;">${escapeHtml(pt.comment || "-")}</td>
+            <td style="padding:6px; text-align:center; border:1px solid #cbd5e1;">${pt.timeStr}</td>
+          </tr>
+        `;
+
+        tsv += `${idx + 1}\t${pt.name || ('#' + (idx + 1))}\t${meta.title}\t${displayReading}\t${statusLabel}\t${pt.comment || ""}\t${pt.timeStr}\n`;
+      });
+
+      html += `</tbody></table>`;
+
+      try {
+        if (navigator.clipboard && window.ClipboardItem) {
+          const htmlBlob = new Blob([html], { type: "text/html" });
+          const textBlob = new Blob([tsv], { type: "text/plain" });
+          await navigator.clipboard.write([
+            new ClipboardItem({
+              "text/html": htmlBlob,
+              "text/plain": textBlob
+            })
+          ]);
+          showToast("¡Tabla copiada al portapapeles! Pégala en Word con Ctrl + V");
+        } else {
+          await navigator.clipboard.writeText(tsv);
+          showToast("Tabla copiada como texto (TSV). Pégala en Word o Excel.");
+        }
+      } catch (e) {
+        console.error("Error al copiar al portapapeles:", e);
+        showToast("Error al acceder al portapapeles: " + e.message);
+      }
+    }
+
+    async function copyDmmGraphForWord() {
+      const canvas = document.getElementById("dmmGraphCanvas");
+      if (!canvas) return;
+      try {
+        canvas.toBlob(async (blob) => {
+          if (!blob) return;
+          if (navigator.clipboard && window.ClipboardItem) {
+            await navigator.clipboard.write([
+              new ClipboardItem({ "image/png": blob })
+            ]);
+            showToast("¡Imagen de la gráfica copiada! Pégala en Word con Ctrl + V");
+          } else {
+            downloadDmmGraphPNG();
+          }
+        }, "image/png");
+      } catch (e) {
+        console.error("Error copiando gráfico:", e);
+        downloadDmmGraphPNG();
+      }
+    }
+
+    function downloadDmmGraphPNG() {
+      const canvas = document.getElementById("dmmGraphCanvas");
+      if (!canvas) return;
+      const link = document.createElement("a");
+      const dateStr = new Date().toISOString().replace(/[:.]/g, "-").slice(0, 19);
+      link.download = `bk2831e_grafica_${dmmState.activeGraphType}_${dateStr}.png`;
+      link.href = canvas.toDataURL("image/png");
+      link.click();
+      showToast("Gráfica guardada como imagen PNG");
+    }
+
+    function exportDmmPointsCSV() {
+      if (dmmState.testPoints.length === 0) {
+        alert("No hay puntos registrados para exportar.");
+        return;
+      }
+      let csv = "Index,TestPoint,Type,Value,Unit,Formatted,Status,Comment,Timestamp\n";
+      dmmState.testPoints.forEach((pt, idx) => {
+        const commentEsc = `"${(pt.comment || "").replace(/"/g, '""')}"`;
+        const formattedEsc = `"${(pt.formatted || "").replace(/"/g, '""')}"`;
+        csv += `${idx + 1},"${pt.name}","${pt.type}",${pt.value},"${pt.unit}",${formattedEsc},"${pt.status}",${commentEsc},"${pt.timestamp}"\n`;
+      });
+
+      const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+      const link = document.createElement("a");
+      const dateStr = new Date().toISOString().replace(/[:.]/g, "-").slice(0, 19);
+      link.download = `bk2831e_bateria_pruebas_${dateStr}.csv`;
+      link.href = URL.createObjectURL(blob);
+      link.click();
+      showToast("Batería de pruebas exportada a CSV");
+    }
+
+    /* --------------------------------------------------------------------------
+       PERSISTENCIA & RESTAURACIÓN COMPLETA (.JSON)
+       -------------------------------------------------------------------------- */
+    function exportDmmSessionPayload() {
+      return {
+        app: "WaveSight_DMM",
+        version: "1.0",
+        exportedAt: new Date().toISOString(),
+        rounding: dmmState.rounding || "2",
+        testPoints: dmmState.testPoints.map(p => ({ ...p }))
+      };
+    }
+
+    function importDmmSessionPayload(data) {
+      if (!data) return;
+      if (data.rounding) {
+        setDmmRounding(data.rounding);
+      }
+      if (Array.isArray(data.testPoints)) {
+        dmmState.testPoints = data.testPoints.map(p => {
+          const pt = { ...p };
+          if (p.noteDx !== undefined && p.noteDx !== null) pt.noteDx = Number(p.noteDx);
+          if (p.noteDy !== undefined && p.noteDy !== null) pt.noteDy = Number(p.noteDy);
+          return pt;
+        });
+      }
+
+      dmmState.nextTpIndex = dmmState.testPoints.length + 1;
+
+      updateDmmSubtabCounters();
+      renderDmmGraph();
+      renderDmmTable();
+    }
+
+    function exportDmmSessionOnly() {
+      const payload = exportDmmSessionPayload();
+      const jsonStr = JSON.stringify(payload, null, 2);
+      const blob = new Blob([jsonStr], { type: "application/json" });
+      const link = document.createElement("a");
+      const dateStr = new Date().toISOString().replace(/[:.]/g, "-").slice(0, 19);
+      link.download = `bk2831e_session_${dateStr}.json`;
+      link.href = URL.createObjectURL(blob);
+      link.click();
+      showToast("Sesión del multímetro exportada (.json)");
+    }
+
+    function handleDmmSessionFile(input) {
+      if (input.files && input.files[0]) {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          try {
+            const data = JSON.parse(e.target.result);
+            importDmmSessionPayload(data.dmmSession || data);
+            showToast("Sesión del multímetro restaurada correctamente (.json)");
+          } catch (err) {
+            alert("Error al leer archivo JSON de DMM: " + err.message);
+          }
+        };
+        reader.readAsText(input.files[0]);
+        input.value = "";
+      }
+    }
+
+    // Inicializar módulo al arrancar
+    window.addEventListener("DOMContentLoaded", () => {
+      initDmmModule();
+    });
   </script>
 </body>
 </html>

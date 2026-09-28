@@ -1,0 +1,2 @@
+# Reglas de Proyecto WaveSight
+- No renderices, no levantes servidores locales ni uses el navegador / browser_subagent para probar la aplicación. El usuario prueba siempre directamente por su cuenta.
