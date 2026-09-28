@@ -666,6 +666,7 @@
       font-size: 12px;
       resize: vertical;
       min-height: 65px;
+      user-select: text;
     }
 
     .note-textarea:focus {
@@ -1907,6 +1908,17 @@
         </div>
       </div>
 
+      <!-- INTERNAL NOTES -->
+      <div class="sidebar-section">
+        <div class="section-title">
+          <span>Internal Notes</span>
+          <span style="font-size:10px; color:#38bdf8">Saved in JSON</span>
+        </div>
+        <textarea id="txtInternalNotes" class="note-textarea" rows="4" 
+          placeholder="Escribe aquí notas internas, observaciones, condiciones de ensayo o configuración..." 
+          style="width: 100%; min-height: 80px; resize: vertical; line-height: 1.4;"></textarea>
+      </div>
+
     </aside>
   </div>
 
@@ -2034,7 +2046,8 @@
       noteMode: false,
       activeNoteEditId: null,
       pendingNotePos: null,
-      selectedNoteColor: "#fbbf24"
+      selectedNoteColor: "#fbbf24",
+      internalNotes: ""
     };
 
     const canvas = document.getElementById("scopeCanvas");
@@ -4128,6 +4141,14 @@
         });
       }
 
+      // Internal notes textarea listener
+      const txtInternalNotesEl = document.getElementById("txtInternalNotes");
+      if (txtInternalNotesEl) {
+        txtInternalNotesEl.addEventListener("input", (e) => {
+          state.internalNotes = e.target.value;
+        });
+      }
+
       // Mouse Canvas Interaction
       canvas.addEventListener("contextmenu", (e) => {
         e.preventDefault();
@@ -5423,6 +5444,7 @@
             voltage: Array.from(ch.data.voltage)
           } : null
         })),
+        internalNotes: document.getElementById("txtInternalNotes") ? document.getElementById("txtInternalNotes").value : (state.internalNotes || ""),
         dmmSession: typeof exportDmmSessionPayload === "function" ? exportDmmSessionPayload() : null
       };
 
@@ -5610,6 +5632,13 @@
 
         if (data.dmmSession && typeof importDmmSessionPayload === "function") {
           importDmmSessionPayload(data.dmmSession);
+        }
+
+        // 7. Internal Notes
+        state.internalNotes = typeof data.internalNotes === "string" ? data.internalNotes : "";
+        const txtInternalNotesInput = document.getElementById("txtInternalNotes");
+        if (txtInternalNotesInput) {
+          txtInternalNotesInput.value = state.internalNotes;
         }
 
         updateDottedLineUI();
